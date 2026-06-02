@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="praia">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de BI - Iniciativas</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Script de Leitura XLSX e Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud/dist/echarts-wordcloud.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <!-- Premium Loader Curtain -->
+    <div id="global-loader" class="glass-loader">
+        <div class="spinner"></div>
+        <p id="loading-status">Carregando dados...</p>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar glass-panel">
+            <div class="sidebar-header">
+                <i data-lucide="bar-chart-2" class="logo-icon"></i>
+                <h2>BI PLS</h2>
+            </div>
+            <ul class="nav-links">
+                <li><button class="nav-btn active" data-target="screen-cover"><i data-lucide="home"></i> Início</button>
+                </li>
+                <li><button class="nav-btn" data-target="screen-eixos"><i data-lucide="pie-chart"></i> Eixos</button>
+                </li>
+                <li><button class="nav-btn" data-target="screen-geo"><i data-lucide="map"></i> Geográfico</button></li>
+                <li><button class="nav-btn" data-target="screen-insights"><i data-lucide="trending-up"></i> Insights</button></li>
+                <li><button class="nav-btn" data-target="screen-indicadores"><i data-lucide="target"></i> Indicadores</button></li>
+                <li><button class="nav-btn" data-target="screen-monte-pls"><i data-lucide="shopping-bag"></i> Monte seu PLS</button></li>
+                <li><button class="nav-btn" data-target="screen-data"><i data-lucide="database"></i> Relatórios</button></li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div id="active-filters-container" class="glass-panel" style="display: none; margin-bottom: 10px; padding: 10px;">
+                    <div id="active-filters-badges" style="display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                </div>
+                <button class="nav-btn clear-btn" id="btn-clear-filters-sidebar">
+                    <i data-lucide="eraser"></i> Limpar Filtros
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+
+            <!-- Screens Container -->
+            <div class="screens-container">
+
+                <!-- Screen 1: Capa (2 Colunas) -->
+                <section id="screen-cover" class="screen active">
+                    <div class="cover-layout">
+                        <div class="cover-text glass-panel">
+                            <h1>Painel Consolidado de Iniciativas</h1>
+                            <h3 class="subtitle">Visão Estratégica 2023-2025</h3>
+                            <p class="presentation">
+                                Bem-vindo ao Painel de Business Intelligence. Este dashboard apresenta de forma
+                                interativa os dados de iniciativas extraídos diretamente da base oficial.
+                            </p>
+                            <p class="presentation">
+                                Navegue pelos menus laterais para visualizar as aberturas por <strong>Eixos de
+                                    Atuação</strong> e a <strong>Distribuição Geográfica</strong> (Estados e Unidades).
+                            </p>
+                            
+                            <!-- Quick Filter Buttons -->
+                            <div class="quick-filters">
+                                <span class="filter-label">Atalhos de Unidade:</span>
+                                <div class="filter-group">
+                                    <button class="quick-btn" data-filter-unit="MPU"><i data-lucide="shield-check"></i> MPU</button>
+                                    <button class="quick-btn" data-filter-unit="Outros"><i data-lucide="building"></i> Outros Órgãos</button>
+                                </div>
+                            </div>
+
+                            <div class="kpi-cards">
+                                <div class="kpi-card glass-panel" id="kpi-card-total">
+                                    <h4 id="kpi-total">0</h4>
+                                    <span>Total de Iniciativas</span>
+                                </div>
+                                <div class="kpi-card glass-panel" id="kpi-card-eixos">
+                                    <h4 id="kpi-eixos">0</h4>
+                                    <span>Eixos de Atuação</span>
+                                </div>
+                                <div class="kpi-card glass-panel" id="kpi-card-estados">
+                                    <h4 id="kpi-estados-count">0</h4>
+                                    <span>Estados Avaliados</span>
+                                </div>
+                                <div class="kpi-card glass-panel" id="kpi-orgaos">
+                                    <h4 id="kpi-orgaos-count">0</h4>
+                                    <span>Órgãos / Unidades</span>
+                                </div>
+                            </div>
+                            
+                            <p class="filter-note">
+                                <i data-lucide="info" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>
+                                * Os filtros são cumulativos e refinam o painel de forma dinâmica.
+                            </p>
+                        </div>
+                        <div class="cover-charts">
+                            <div class="chart-container glass-panel">
+                                <h3>Iniciativas por Eixo</h3>
+                                <div class="canvas-wrapper">
+                                    <canvas id="chart-cover-eixos"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-container glass-panel">
+                                <h3>Distribuição por Estado (Top 5)</h3>
+                                <div class="canvas-wrapper">
+                                    <canvas id="chart-cover-estados"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Screen 2: Análise por Eixos -->
+                <section id="screen-eixos" class="screen">
+                    <div class="glass-panel screen-header">
+                        <h2>Análise por Eixos de Atuação</h2>
+                        <p>Visão detalhada do volume de iniciativas em cada eixo temático.</p>
+                    </div>
+                    <div class="chart-grid two-cols">
+                        <div class="chart-container glass-panel">
+                            <h3>Volume Detalhado por Eixo</h3>
+                            <div class="canvas-wrapper-large">
+                                <canvas id="chart-full-eixos"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <h3>Nuvem de Termos</h3>
+                            <p class="chart-desc">Termos mais frequentes nas iniciativas consolidadas, indicando temas recorrentes.</p>
+                            <div class="canvas-wrapper-large" style="height: 540px;">
+                                <div id="chart-wordcloud" style="width:100%; height:100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Screen 3: Análise Geográfica -->
+                <section id="screen-geo" class="screen">
+                    <div class="glass-panel screen-header">
+                        <h2>Distribuição Geográfica e Institucional</h2>
+                        <p>Análise de iniciativas filtradas por Estado e por Unidade/Órgão.</p>
+                    </div>
+                    <div class="geo-layout">
+                        <div class="chart-container glass-panel map-main">
+                            <h3>Mapa de Iniciativas por Estado</h3>
+                            <div class="canvas-wrapper-xl">
+                                <div id="map-brasil" style="width:100%; height:100%;"></div>
+                            </div>
+                        </div>
+                        <div class="geo-details glass-panel" id="geo-details-panel">
+                            <h3>Detalhes Selecionados</h3>
+                            <div id="geo-details-content" class="details-content">
+                                <p class="empty-msg">Clique em um estado no mapa para ver o detalhamento agora.</p>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <h3>Ranking Órgãos/Unidades</h3>
+                            <div class="canvas-wrapper-xl">
+                                <canvas id="chart-full-unidades"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Screen 4: Insights Estratégicos -->
+                <section id="screen-insights" class="screen">
+                    <div class="glass-panel screen-header">
+                        <h2>Insights Estratégicos</h2>
+                        <p>Análise avançada de concentração, Pareto e cruzamento de dados por Órgão.</p>
+                    </div>
+                    
+                    <div class="chart-grid two-cols">
+                        <div class="chart-container glass-panel">
+                            <h3>Análise de Pareto: Iniciativas por Órgão</h3>
+                            <div class="canvas-wrapper-large">
+                                <canvas id="chart-pareto-orgaos"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <h3>Matriz de Calor: Eixo vs Órgão</h3>
+                            <div class="canvas-wrapper-large">
+                                <div id="chart-heatmap-eixo-orgao" style="width:100%; height:100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- Screen: Sistema de Indicadores -->
+                <section id="screen-indicadores" class="screen">
+                    <div class="glass-panel screen-header">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h2>Sistema de Indicadores de Sustentabilidade</h2>
+                                <p>Catálogo consolidado de indicadores monitorados, filtrável por Eixo Estratégico e Fonte de Origem.</p>
+                            </div>
+                            <button id="btn-export-indicadores" title="Exportar Indicadores" style="width: auto; padding: 8px 16px; border-radius: 8px; background: var(--accent); color: var(--bg-main); border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; font-size:0.9rem; font-weight:600; white-space: nowrap;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
+                                <i data-lucide="file-spreadsheet"></i> Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KPIs + Gráfico -->
+                    <div class="indicadores-top-row">
+                        <div class="kpi-card glass-panel" style="text-align: center;">
+                            <h4 id="kpi-total-indicadores">0</h4>
+                            <span>Total de Indicadores</span>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center;">
+                            <h4 id="kpi-eixos-indicadores">0</h4>
+                            <span>Eixos Estratégicos</span>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center;">
+                            <h4 id="kpi-fontes-indicadores">0</h4>
+                            <span>Fontes Consolidadas</span>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Eixos -->
+                    <div class="chart-container glass-panel" style="margin-bottom: 20px;">
+                        <h3>Distribuição por Eixo Estratégico</h3>
+                        <div class="canvas-wrapper" style="height: 280px;">
+                            <canvas id="chart-indicadores-eixos"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Filtros + Busca -->
+                    <div class="glass-panel indicadores-filtros">
+                        <div class="indicadores-filtro-item">
+                            <label><i data-lucide="pie-chart" style="width: 14px; height: 14px; vertical-align: middle;"></i> Filtrar por Eixo</label>
+                            <select id="filter-indicadores-eixo" class="glass-input" style="width: 100%;">
+                                <option value="">Todos os Eixos</option>
+                            </select>
+                        </div>
+                        <div class="indicadores-filtro-item">
+                            <label><i data-lucide="book-open" style="width: 14px; height: 14px; vertical-align: middle;"></i> Filtrar por Fonte</label>
+                            <select id="filter-indicadores-fonte" class="glass-input" style="width: 100%;">
+                                <option value="">Todas as Fontes</option>
+                            </select>
+                        </div>
+                        <div class="indicadores-filtro-item" style="flex: 2;">
+                            <label><i data-lucide="search" style="width: 14px; height: 14px; vertical-align: middle;"></i> Busca Textual</label>
+                            <input type="text" id="search-indicadores" placeholder="Buscar em nome, eixo, fonte ou requisitos..." class="glass-input" style="width: 100%;">
+                        </div>
+                        <div class="indicadores-filtro-item" style="justify-content: flex-end; align-items: flex-end; flex: 0 0 auto;">
+                            <button id="btn-limpar-indicadores" class="nav-btn clear-btn">
+                                <i data-lucide="eraser"></i> Limpar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contagem de resultados -->
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                        <span id="indicadores-count" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Mostrando 0 indicadores</span>
+                    </div>
+
+                    <!-- Tabela Indicadores -->
+                    <div class="table-container glass-panel">
+                        <table id="indicadores-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">ID</th>
+                                    <th>Nome do Indicador</th>
+                                    <th style="width: 18%;">Eixo</th>
+                                    <th style="width: 14%;">Categoria</th>
+                                    <th style="width: 25%;">Requisitos</th>
+                                    <th style="width: 120px; text-align: center;">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="indicadores-tbody">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginação Indicadores -->
+                    <div class="pagination-controls glass-panel" style="margin-top: 16px; display: flex; justify-content: center; gap: 8px;">
+                        <button id="btn-ind-prev" class="nav-btn" style="width:auto; padding: 6px 16px;"><i data-lucide="chevron-left"></i> Anterior</button>
+                        <span id="ind-page-indicator" style="display: flex; align-items: center; padding: 0 16px; font-weight: 600; color: var(--text-main);">Página 1</span>
+                        <button id="btn-ind-next" class="nav-btn" style="width:auto; padding: 6px 16px;">Próximo <i data-lucide="chevron-right"></i></button>
+                    </div>
+                </section>
+
+                <!-- Screen: Monte seu PLS -->
+                <section id="screen-monte-pls" class="screen">
+                    <div class="glass-panel screen-header">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h2>Monte seu Plano de Logística Sustentável (PLS)</h2>
+                                <p>Crie um plano estratégico personalizado estruturando eixos, ações e indicadores.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Steps Progress Indicator -->
+                    <div class="pls-steps-progress glass-panel" style="margin-bottom: 20px; padding: 15px 30px;">
+                        <div class="pls-steps-list">
+                            <div class="pls-step-item active" id="pls-step-indicator-1" onclick="setPlsStep(1)">
+                                <span class="step-num">1</span>
+                                <span class="step-text">Eixos Estratégicos</span>
+                            </div>
+                            <div class="pls-step-line" id="pls-step-line-1"></div>
+                            <div class="pls-step-item" id="pls-step-indicator-2" onclick="setPlsStep(2)">
+                                <span class="step-num">2</span>
+                                <span class="step-text">Ações & Formas de Trabalho</span>
+                            </div>
+                            <div class="pls-step-line" id="pls-step-line-2"></div>
+                            <div class="pls-step-item" id="pls-step-indicator-3" onclick="setPlsStep(3)">
+                                <span class="step-num">3</span>
+                                <span class="step-text">Vincular Indicadores</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Session Bar: Save / Load / Export -->
+                    <div class="pls-session-bar glass-panel" style="margin-bottom: 20px;">
+                        <div class="pls-session-btns">
+                            <input type="file" id="pls-session-upload" accept=".json" style="display: none;">
+                            <button id="btn-pls-load" class="btn-pls-session" title="Carregar planejamento salvo do computador">
+                                <i data-lucide="upload-cloud"></i> Carregar Sessão
+                            </button>
+                            <button id="btn-pls-save" class="btn-pls-session" title="Salvar planejamento atual no computador">
+                                <i data-lucide="download"></i> Salvar Sessão
+                            </button>
+                        </div>
+                        <div class="pls-session-btns">
+                            <button id="btn-pls-export-excel" class="btn-pls-session" title="Exportar plano formatado em Excel">
+                                <i data-lucide="file-spreadsheet"></i> Exportar XLSX
+                            </button>
+                            <button id="btn-pls-export-pdf" class="btn-pls-session btn-pls-session-primary" title="Imprimir/Gerar PDF estratégico">
+                                <i data-lucide="file-text"></i> Gerar Relatório PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 1: Seleção de Eixos -->
+                    <div id="pls-step-1-container" class="pls-step-content-pane">
+                        <div class="glass-panel">
+                            <h3>Etapa 1: Seleção de Eixos Estratégicos</h3>
+                            <p class="chart-desc" style="margin-bottom: 20px;">Escolha quais eixos temáticos farão parte do escopo estratégico do seu plano.</p>
+                            <div class="pls-eixos-grid" id="pls-step1-eixos-grid">
+                                <!-- Cards gerados dinamicamente via JS -->
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
+                                <button class="btn-pls-session btn-pls-session-primary" style="padding: 12px 24px; font-size: 1rem;" onclick="setPlsStep(2)">
+                                    Avançar para Ações <i data-lucide="arrow-right" style="width: 18px; margin-left: 6px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Definição de Ações -->
+                    <div id="pls-step-2-container" class="pls-step-content-pane" style="display: none;">
+                        <div class="glass-panel">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 12px; margin-bottom: 20px;">
+                                <h3>Etapa 2: Ações & Formas de Trabalho</h3>
+                                <p class="chart-desc" style="margin-bottom: 0;">Descreva o que o órgão fará em cada eixo selecionado para atingir metas de sustentabilidade.</p>
+                            </div>
+                            <div id="pls-step2-eixos-actions-container" style="display: flex; flex-direction: column; gap: 24px;">
+                                <!-- Gerado dinamicamente via JS -->
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                                <button class="btn-pls-session" style="padding: 12px 24px; font-size: 1rem;" onclick="setPlsStep(1)">
+                                    <i data-lucide="arrow-left" style="width: 18px; margin-right: 6px;"></i> Voltar para Eixos
+                                </button>
+                                <button class="btn-pls-session btn-pls-session-primary" style="padding: 12px 24px; font-size: 1rem;" onclick="setPlsStep(3)">
+                                    Avançar para Indicadores <i data-lucide="arrow-right" style="width: 18px; margin-left: 6px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Vinculação de Indicadores -->
+                    <div id="pls-step-3-container" class="pls-step-content-pane" style="display: none;">
+                        <div class="glass-panel">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 12px; margin-bottom: 20px;">
+                                <h3>Etapa 3: Vinculação de Indicadores</h3>
+                                <p class="chart-desc" style="margin-bottom: 0;">Para cada ação criada, associe indicadores que ajudem a auditar sua eficácia.</p>
+                            </div>
+                            <div id="pls-step3-actions-linkage-container" style="display: flex; flex-direction: column; gap: 24px;">
+                                <!-- Gerado dinamicamente via JS -->
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                                <button class="btn-pls-session" style="padding: 12px 24px; font-size: 1rem;" onclick="setPlsStep(2)">
+                                    <i data-lucide="arrow-left" style="width: 18px; margin-right: 6px;"></i> Voltar para Ações
+                                </button>
+                                <button class="btn-pls-session btn-pls-session-primary" style="padding: 12px 24px; font-size: 1rem;" onclick="exportPlsPDF()">
+                                    <i data-lucide="file-text" style="width: 18px; margin-right: 6px;"></i> Finalizar e Gerar PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Screen 4: Base de Dados -->
+                <section id="screen-data" class="screen">
+                    <div class="glass-panel screen-header">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h2>Relatório: Base de Dados</h2>
+                                <p>Tabela detalhada com sistema avançado de filtros independentes.</p>
+                            </div>
+                            <button id="btn-open-export-modal" title="Gerar Relatório" style="width: auto; padding: 8px 16px; border-radius: 8px; background: var(--accent); color: var(--bg-main); border: none; cursor: pointer; display: flex; align-items: center; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
+                                <i data-lucide="file-text"></i> <span style="margin-left:8px; font-size:0.9rem; font-weight:600;">Gerar Relatório</span>
+                            </button>
+                        </div>
+                        <div class="table-controls">
+                            <input type="text" id="table-search" placeholder="Buscar em qualquer coluna..." class="glass-input">
+                            <span id="table-count">Mostrando 0 registros</span>
+                        </div>
+                    </div>
+                    <div class="table-container glass-panel">
+                        <table id="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Eixo</th>
+                                    <th>Estado</th>
+                                    <th>Órgão</th>
+                                    <th>Unidade</th>
+                                    <th>Iniciativa Consolidada</th>
+                                </tr>
+                                <tr class="filter-row">
+                                    <th><input type="text" class="col-filter" data-col="Eixo" placeholder="Filtrar Eixo..."></th>
+                                    <th><input type="text" class="col-filter" data-col="Estado" placeholder="Filtrar Estado..."></th>
+                                    <th><input type="text" class="col-filter" data-col="Órgão" placeholder="Filtrar Órgão..."></th>
+                                    <th><input type="text" class="col-filter" data-col="Unidade" placeholder="Filtrar Unidade..."></th>
+                                    <th><input type="text" class="col-filter" data-col="Iniciativa consolidada" placeholder="Filtrar Consolidada..."></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination Controls -->
+                    <div class="pagination-controls glass-panel" style="margin-top: 16px; display: flex; justify-content: center; gap: 8px;">
+                        <button id="btn-page-prev" class="nav-btn" style="width:auto; padding: 6px 16px;"><i data-lucide="chevron-left"></i> Anterior</button>
+                        <span id="page-indicator" style="display: flex; align-items: center; padding: 0 16px; font-weight: 600; color: var(--text-main);">Página 1</span>
+                        <button id="btn-page-next" class="nav-btn" style="width:auto; padding: 6px 16px;">Próximo <i data-lucide="chevron-right"></i></button>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- Legend & Global Color Control Sidebar (Right) -->
+        <aside id="legend-sidebar" class="right-sidebar glass-panel">
+            <!-- Pane 1: Personalizar (original) -->
+            <div id="personalizar-sidebar-content">
+                <div class="sidebar-header">
+                    <i data-lucide="palette" class="logo-icon"></i>
+                    <h2>Personalizar</h2>
+                </div>
+                <p class="legend-desc">Ajuste o tema, o foco da visão e neutralize as cores dos eixos estratégicos para todo o painel.</p>
+                
+                <div class="theme-control" style="margin-bottom: 20px; text-align: left; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 12px; text-align: center;">
+                        <i data-lucide="swatch-book" style="width: 14px; height: 14px; vertical-align: middle;"></i> Esquema de Cores (Tema)
+                    </label>
+                    <div class="theme-controls" style="display: flex; justify-content: center; align-items: center; gap: 6px;">
+                        <button class="theme-btn" data-theme-val="praia" title="Areia / Praia"><i data-lucide="sun-dim"></i></button>
+                        <button class="theme-btn" data-theme-val="claro" title="Claro"><i data-lucide="lightbulb"></i></button>
+                        <button class="theme-btn" data-theme-val="escuro" title="Escuro"><i data-lucide="moon"></i></button>
+                        <button class="theme-btn" data-theme-val="contraste" title="Alto Contraste border"><i data-lucide="contrast"></i></button>
+                    </div>
+                </div>
+                <div class="font-control" style="margin-bottom: 20px; text-align: left; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 12px; text-align: center;">
+                        <i data-lucide="zoom-in" style="width: 14px; height: 14px; vertical-align: middle;"></i> Tamanho do Painel (Zoom)
+                    </label>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
+                        <button id="btn-font-minus" style="width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg-glass); cursor: pointer; color: var(--text-main); box-shadow: var(--shadow-glass); display: flex; align-items: center; justify-content: center;"><i data-lucide="minus" style="width: 16px; height: 16px;"></i></button>
+                        <span id="font-size-val" style="font-weight: bold; font-size: 1rem; color: var(--text-main); min-width: 45px; text-align: center;">100%</span>
+                        <button id="btn-font-plus" style="width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg-glass); cursor: pointer; color: var(--text-main); box-shadow: var(--shadow-glass); display: flex; align-items: center; justify-content: center;"><i data-lucide="plus" style="width: 16px; height: 16px;"></i></button>
+                    </div>
+                </div>
+
+                <div id="legend-controls" class="legend-list">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="legend-footer">
+                    <button id="btn-reset-colors" class="nav-btn">
+                        <i data-lucide="refresh-cw"></i> Resetar Cores
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Pane 2: Resumo do PLS (novo) -->
+            <div id="pls-summary-sidebar-content" style="display: none; height: 100%; flex-direction: column;">
+                <div class="sidebar-header">
+                    <i data-lucide="scroll" class="logo-icon"></i>
+                    <h2>Resumo do PLS</h2>
+                </div>
+                <p class="legend-desc">Acompanhe em tempo real a estrutura do plano que você está montando.</p>
+                
+                <div style="flex: 1; overflow-y: auto; margin-top: 10px; display: flex; flex-direction: column; gap: 16px;" id="pls-sidebar-summary-box">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal de Exportação -->
+    <div id="modal-export" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3><i data-lucide="printer" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> Gerar Relatório</h3>
+                <button class="close-modal" id="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Selecione o formato e o escopo dos dados para o relatório:</p>
+                
+                <div id="export-filters-wrapper" style="display: none;">
+                    <div class="filter-selection" style="margin-bottom: 10px; display: flex; gap: 10px; justify-content: center;">
+                        <label class="radio-label">
+                            <input type="radio" name="export-scope" value="filtered" checked> <span>Dados Filtrados</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="export-scope" value="all"> <span>Base Completa</span>
+                        </label>
+                    </div>
+                    
+                    <div id="modal-active-filters-box" style="margin-bottom: 20px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px; font-size: 0.85rem;">
+                        <strong style="color: var(--accent);">Filtros Ativos:</strong> <span id="modal-active-filters-text" style="color: var(--text-main);">Nenhum</span>
+                    </div>
+                </div>
+
+                <div class="export-options" style="margin-top: 20px;">
+                    <button class="export-option-btn" id="btn-export-xlsx">
+                        <i data-lucide="file-spreadsheet"></i>
+                        <span>Planilha Excel (XLSX)</span>
+                    </button>
+                    <button class="export-option-btn" id="btn-export-pdf">
+                        <i data-lucide="file-type-2"></i>
+                        <span>Relatório PDF</span>
+                    </button>
+                </div>
+                <p class="modal-note">* Os filtros aplicados no painel serão respeitados no relatório.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tratar erros de sintaxe ou execução visivelmente na tela -->
+    <script>
+        window.addEventListener('error', function(e) {
+            var loader = document.getElementById('loading-status');
+            if (loader) {
+                loader.textContent = "Erro de Execução (Linha " + e.lineno + "): " + e.message;
+                loader.style.color = '#ff4444';
+            }
+        });
+        window.addEventListener('unhandledrejection', function(event) {
+            var loader = document.getElementById('loading-status');
+            if (loader) {
+                loader.textContent = "Erro de Conexão/Promise: " + (event.reason.message || event.reason);
+                loader.style.color = 'orange';
+            }
+        });
+    </script>
+    <script src="app.js?v=4"></script>
+</body>
+
+</html>
