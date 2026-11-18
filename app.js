@@ -883,10 +883,10 @@ function updateInsightsHighlights(data) {
             <span class="trend">${leaderStateVal} iniciativas no escopo</span>
         </div>
         <div class="insight-card" style="cursor:pointer;" onclick="document.querySelector('[data-target=\\'screen-diagnostico\\']').click()">
-            <div class="icon-box" style="background: #e74c3c;"><i data-lucide="graduation-cap"></i></div>
+            <div class="icon-box" style="background: #e67e22;"><i data-lucide="construction"></i></div>
             <h4>Unidade Piloto (ESMPU)</h4>
-            <p>${esmpuCount} Ações (3 Eixos)</p>
-            <span class="trend">Clique para abrir o Diagnóstico Institucional →</span>
+            <p>${esmpuCount} Ações Preliminares</p>
+            <span class="trend">Em Construção (Aguardando tratativas finais) →</span>
         </div>
         <div class="insight-card">
             <div class="icon-box"><i data-lucide="target"></i></div>
@@ -2382,20 +2382,156 @@ const DIAG_GAP_DATA = [
 ];
 
 const DIAG_DESAFIOS_REL12 = [
-    { num: '1.1', titulo: 'Construir o diagnóstico e a linha de base', problema: 'Dados dispersos entre áreas e sistemas; dificuldade de medição em prédios compartilhados.', solucao: 'Módulo de Monitoramento & Coleta Padronizada (sustentabilidade.site) + campo de Linha de Base (2023–2025) nas ações.' },
-    { num: '1.2', titulo: 'Definir indicadores e metas adequados', problema: 'Bases de cálculo distintas (total, per capita, m²); público flutuante na Escola; Resíduos medidos apenas por processo.', solucao: 'Novos indicadores gravimétricos em kg (IDs 44 a 48) + seletor de Base de Cálculo e População de Referência.' },
-    { num: '1.3', titulo: 'Padronizar conceitos e nomenclaturas', problema: 'Estruturas e nomenclaturas heterogêneas entre ESMPU, MPF, MPT e demais órgãos.', solucao: 'Taxonomia unificada de 17 Ações Consolidadas integrada ao assistente "Monte seu PLS".' },
-    { num: '1.4', titulo: 'Articular as áreas e engajar as unidades', problema: 'Execução distribuída entre Compras, Contratos, Engenharia, Comunicação, Gestão de Pessoas e TI.', solucao: 'Atribuição explícita de Área Responsável e Periodicidade em cada ação do PLS e registro de coleta.' },
-    { num: '1.5', titulo: 'Transformar o monitoramento em rotina', problema: 'Monitoramento previsto desde o PLS 2016, mas carente de operacionalização mensal/anual comparável.', solucao: 'Painel de BI interativo com série histórica de coleta, cálculo automático de indicadores e exportação PDF/XLSX.' },
-    { num: '1.6', titulo: 'Dispor de ferramentas e capacidades abertas', problema: 'Dependência de licenças proprietárias e necessidade de capacitação das equipes.', solucao: 'Solução web aberta, 100% client-side, transferida à ESMPU com template do PLS Modelo 2026–2028.' }
+    {
+        num: '1.1',
+        fase: 'Formulacao',
+        icone: 'database',
+        cor: '#3498db',
+        titulo: 'Construir o diagnóstico e a linha de base',
+        problema: 'Todo PLS parte de um retrato do consumo e das práticas da instituição, mas os dados encontram-se dispersos entre áreas e sistemas administrativos internos. Além disso, unidades instaladas em prédios compartilhados não dispõem de medição individualizada própria.',
+        evidencia: 'ESMPU (levantamento 2023–2025 + escuta interna [1, p. 11–14]); MPF (sistemas internos [4, p. 14]); MPT (formulários padronizados e rateio em prédios compartilhados [3, p. 3–4]).',
+        solucoesPraticas: [
+            '1) Protocolo Unificado de Linha de Base (3 Exercícios): Consolidar as faturas e registros dos últimos 3 anos em planilha/formulário único antes de fixar metas.',
+            '2) Regra Prática para Prédios Compartilhados: Na ausência de hidrômetro ou medidor exclusivo, adotar o rateio proporcional por área ocupada (m²) ou por população residente da unidade.',
+            '3) Registro de Marco Zero no PLS: Documentar explicitamente a Linha de Base (2023–2025) dentro de cada ação cadastrada no plano.'
+        ],
+        ferramentaAcao: 'Módulo de Monitoramento & Coleta Padronizada (sustentabilidade.site) + campo "Linha de Base 2023–2025" no Monte seu PLS.',
+        targetTab: 'screen-coleta',
+        targetLabel: 'Abrir Coleta & Linha de Base'
+    },
+    {
+        num: '1.2',
+        fase: 'Formulacao',
+        icone: 'ruler',
+        cor: '#e74c3c',
+        titulo: 'Definir indicadores e metas adequados (Bases de Cálculo e Gravimetria)',
+        problema: 'As instituições adotam bases de cálculo distintas (consumo total, per capita ou por m²), sendo a população de referência crítica em unidades com público flutuante (como escolas). O eixo Resíduos concentra a maior dificuldade: tende a ser medido por indicadores de processo (campanhas/planos) e não pela quantidade em kg gerada ou destinada.',
+        evidencia: 'PLS ESMPU ("consolidar e amadurecer indicadores e metas" [1, p. 15, 17–19]); Relatório MASA/MPT (revisão de metas no 1º ano [3, p. 52]); PLS MPF [4, p. 21–22].',
+        solucoesPraticas: [
+            '1) População Equivalente para Público Flutuante: Adotar fórmula ponderada (Pop. Fixa + Público Flutuante × Fator de Permanência) combinada com indicador por Área Construída (m²).',
+            '2) Transição Gradual Processo → Gravimetria em Resíduos: Manter indicadores de processo no 1º trimestre, mas instituir pesagem por amostragem/coleta (em kg) para Recicláveis (cooperativas), Orgânicos (compostagem) e Rejeitos (aterro).',
+            '3) Revisão Anual Calibrada: Prever janela formal de recalibragem das metas após os primeiros 12 meses de série histórica.'
+        ],
+        ferramentaAcao: '7 novos indicadores gravimétricos em kg (IDs 44 a 50) no Catálogo + Simulador de Base de Cálculo e Público Flutuante abaixo.',
+        targetTab: 'screen-indicadores',
+        targetLabel: 'Explorar 50 Indicadores (IDs 44–50)'
+    },
+    {
+        num: '1.3',
+        fase: 'Formulacao',
+        icone: 'layers',
+        cor: '#e67e22',
+        titulo: 'Padronizar conceitos, estruturas e nomenclaturas',
+        problema: 'Cada instituição estrutura seu plano de forma própria (diretrizes/objetivos na ESMPU, matrizes de referência no MPF, eixos/subeixos no MPT), com horizontes de 2, 3 ou 6 anos, e descreve ações equivalentes sob nomenclaturas heterogêneas, dificultando comparar resultados e reaproveitar boas práticas.',
+        evidencia: 'PLS ESMPU 2026–2028 [1, p. 7–8]; PLS MPF 2024–2026 [4, p. 7–8, 13]; Relatório MASA/MPT 2025–2030 [3, p. 4–5, 11, 13].',
+        solucoesPraticas: [
+            '1) Camada Dupla (Ação Bruta × Ação Consolidada): Preservar a redação operacional própria da unidade ("Ação Bruta / Forma de Trabalho"), mas vinculá-la obrigatoriamente a uma das 17 categorias da Taxonomia Padronizada ("Ação Consolidada").',
+            '2) Catálogo Interinstitucional de Boas Práticas: Consultar as 257 ações mapeadas de 14 instituições antes de redigir novas ações.',
+            '3) Alinhamento Normativo CNMP/SEGES: Mapear cada eixo do plano local aos referenciais da Resolução CNMP nº 145/2016.'
+        ],
+        ferramentaAcao: 'Taxonomia unificada de 17 Ações Consolidadas integrada ao dropdown da Etapa 2 do assistente "Monte seu PLS".',
+        targetTab: 'screen-monte-pls',
+        targetLabel: 'Testar Taxonomia no Monte seu PLS'
+    },
+    {
+        num: '1.4',
+        fase: 'Sustentacao',
+        icone: 'users',
+        cor: '#9b59b6',
+        titulo: 'Articular as áreas executoras e engajar as unidades',
+        problema: 'O PLS é coordenado por uma instância central (Comissão/Assessoria de Sustentabilidade), mas executado de forma distribuída por Compras, Contratos, Engenharia, Comunicação, Gestão de Pessoas e TI. Manter essas áreas engajadas na execução e no envio de dados é um ponto crítico.',
+        evidencia: 'PLS ESMPU ("engajamento sistemático de suas unidades" entre os pontos a fortalecer [1, p. 7, 10, 14]); PLS MPF (rede de agentes de sustentabilidade [4, p. 16–17]).',
+        solucoesPraticas: [
+            '1) Matriz de Corresponsabilidade por Ação/Indicador: Definir nominalmente a Área Responsável (Engenharia, Compras, Contratos, Comunicação, TI) no momento da criação de cada ação do PLS.',
+            '2) Ponto Focal / Agente de Sustentabilidade Setorial: Designar 1 representante técnico em cada secretaria/área estratégica para validar os dados do seu setor.',
+            '3) Devolutiva Visual Rápida: Compartilhar os gráficos do painel nas reuniões trimestrais para que as áreas enxerguem o resultado prático dos dados enviados.'
+        ],
+        ferramentaAcao: 'Seletor obrigatório de "Área Responsável" na Etapa 2 do Monte seu PLS e no formulário de Monitoramento.',
+        targetTab: 'screen-monte-pls',
+        targetLabel: 'Definir Áreas no Monte seu PLS'
+    },
+    {
+        num: '1.5',
+        fase: 'Sustentacao',
+        icone: 'calendar-clock',
+        cor: '#16a085',
+        titulo: 'Transformar o monitoramento em rotina institucional',
+        problema: 'Prever o acompanhamento no texto do plano é mais simples do que operacionalizá-lo. O monitoramento exige coleta, consolidação, validação e publicação recorrentes, além da manutenção de séries históricas comparáveis quando critérios mudam ao longo dos anos.',
+        evidencia: 'PLS ESMPU 2016 [2, p. 9, 11, 15] e PLS 2026–2028 (previsão de monitoramento mensal, painel e relatório anual [1, p. 24–25]); MPT [3, p. 3–4].',
+        solucoesPraticas: [
+            '1) Calendário Fixo de Coleta por Natureza do Dado: Mensal para faturas (Energia kWh, Água m³ e pesagem de Resíduos kg); Trimestral para Contratos e Campanhas; Anual para balanço do PLS.',
+            '2) Preservação da Série Histórica Comparável: Ao alterar um critério, manter o registro da população de referência e área (m²) de cada período para recalcular índices sem quebrar a série.',
+            '3) Relatório Padronizado de 1 Clique: Emitir boletins trimestrais em PDF/XLSX diretamente do painel para instrução do processo SEI de acompanhamento.'
+        ],
+        ferramentaAcao: 'Série histórica 2023–2026 pré-estruturada na aba Monitoramento com cálculo automático de taxas e exportação PDF/XLSX.',
+        targetTab: 'screen-coleta',
+        targetLabel: 'Ver Rotina de Monitoramento'
+    },
+    {
+        num: '1.6',
+        fase: 'Sustentacao',
+        icone: 'cpu',
+        cor: '#2c3e50',
+        titulo: 'Dispor de ferramentas abertas e capacidades técnicas',
+        problema: 'A dependência de softwares proprietários de BI e de licenças pagas, somada à necessidade de capacitação técnica complexa para operá-los, condiciona e frequentemente paralisa o ritmo de implantação do monitoramento nas unidades públicas.',
+        evidencia: 'PLS ESMPU 2026–2028 (previsão de adoção de painéis de BI [1, p. 22–23]); PLS MPF 2024–2026 [4, p. 13].',
+        solucoesPraticas: [
+            '1) Adoção de Arquitetura Web Aberta (Zero Licença): Utilizar aplicação client-side em HTML/JS/XLSX que roda em qualquer navegador padrão, sem custo de licenciamento.',
+            '2) Templates Pré-Configurados (Pronto para Uso): Disponibilizar o template "PLS Modelo ESMPU" já preenchido, evitando que a equipe comece do zero.',
+            '3) Kit de Transferência Tecnológica Autônomo: Entregar código-fonte aberto, lançador local automatizado (iniciar_painel.bat) e manual ilustrado passo a passo.'
+        ],
+        ferramentaAcao: 'Painel BI + Assistente PLS 100% aberto, com templates "PLS ESMPU (Base)" e "PLS Modelo ESMPU (Completo)" em 1 clique.',
+        targetTab: 'screen-diagnostico',
+        targetLabel: 'Ver Diagnóstico & Templates'
+    }
+];
+
+var desafiosFilterMode = 'all';
+var desafiosChecklistState = [true, true, true, true, false, true, true, false, true, false, true, true];
+
+const DESAFIOS_CHECKLIST_ITEMS = [
+    { id: 0, ref: '1.1', texto: 'Levantamento das faturas/consumos dos últimos 3 exercícios (Linha de Base 2023–2025) consolidado.' },
+    { id: 1, ref: '1.1', texto: 'Critério de medição individualizada ou rateio por m² definido para prédios/áreas da unidade.' },
+    { id: 2, ref: '1.2', texto: 'População de referência (fixa + peso do público flutuante) e área construída (m²) homologadas.' },
+    { id: 3, ref: '1.2', texto: 'Balança ou protocolo de pesagem gravimétrica (em kg) implantado para recicláveis, orgânicos e rejeitos.' },
+    { id: 4, ref: '1.2', texto: 'Janela anual de revisão e calibragem de metas prevista no cronograma da Comissão de Sustentabilidade.' },
+    { id: 5, ref: '1.3', texto: 'Ações operacionais do plano local mapeadas nas 17 categorias da Taxonomia de Ações Consolidadas.' },
+    { id: 6, ref: '1.3', texto: 'Consulta de benchmarking realizada junto à base de 257 iniciativas do MPU e demais órgãos.' },
+    { id: 7, ref: '1.4', texto: 'Pontos focais designados nas áreas executoras (Engenharia, Compras, Contratos, Comunicação, TI).' },
+    { id: 8, ref: '1.4', texto: 'Área Responsável vinculada nominalmente a cada ação e indicador do PLS.' },
+    { id: 9, ref: '1.5', texto: 'Rotina mensal de lançamento de dados (kWh, m³ e kg de resíduos) em execução contínua.' },
+    { id: 10, ref: '1.5', texto: 'Emissão trimestral/anual de relatórios auditáveis (PDF/XLSX) para acompanhamento no SEI.' },
+    { id: 11, ref: '1.6', texto: 'Ferramenta aberta de BI e Assistente PLS transferida e operacional sem dependência de licenças pagas.' }
 ];
 
 function initDiagnosticoESMPU() {
     renderDiagnosticoCharts();
     renderGapAnalysisTable();
     renderEsmpuConsolidationTable();
-    renderDesafiosCards();
+    renderDesafiosScreen();
+    runBaseCalculoSimulator();
+    renderDesafiosChecklist();
 }
+
+window.toggleDiagSavedArchive = function() {
+    const container = document.getElementById('diag-saved-archive-container');
+    const lbl = document.getElementById('lbl-toggle-diag-archive');
+    if (!container) return;
+    const isHidden = container.style.display === 'none';
+    container.style.display = isHidden ? 'block' : 'none';
+    if (lbl) {
+        lbl.textContent = isHidden
+            ? 'Ocultar Dados Preliminares Guardados'
+            : 'Consultar Dados Preliminares Guardados (Prévia Documental)';
+    }
+    if (isHidden) {
+        setTimeout(() => {
+            renderDiagnosticoCharts();
+            Object.values(charts).forEach(c => { if (c && c.resize) c.resize(); });
+            lucide.createIcons();
+        }, 80);
+    }
+};
 
 function renderDiagnosticoCharts() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'escuro' || document.documentElement.getAttribute('data-theme') === 'contraste';
@@ -2559,24 +2695,182 @@ function renderEsmpuConsolidationTable() {
     }).join('');
 }
 
-function renderDesafiosCards() {
-    const container = document.getElementById('diag-desafios-cards');
-    if (!container) return;
+window.filterDesafiosCards = function(mode) {
+    desafiosFilterMode = mode;
+    const bAll = document.getElementById('btn-des-filter-all');
+    const bPlan = document.getElementById('btn-des-filter-planejamento');
+    const bExec = document.getElementById('btn-des-filter-execucao');
+    if (bAll) bAll.className = mode === 'all' ? 'btn-pls-session btn-pls-session-primary' : 'btn-pls-session';
+    if (bPlan) bPlan.className = mode === 'Formulacao' ? 'btn-pls-session btn-pls-session-primary' : 'btn-pls-session';
+    if (bExec) bExec.className = mode === 'Sustentacao' ? 'btn-pls-session btn-pls-session-primary' : 'btn-pls-session';
+    renderDesafiosScreen();
+};
 
-    container.innerHTML = DIAG_DESAFIOS_REL12.map(d => `
-        <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-glass); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px;">
-            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 4px;">
-                Desafio ${d.num}: ${d.titulo}
+function renderDesafiosScreen() {
+    const grid = document.getElementById('desafios-detailed-grid');
+    if (!grid) return;
+
+    const filtered = desafiosFilterMode === 'all'
+        ? DIAG_DESAFIOS_REL12
+        : DIAG_DESAFIOS_REL12.filter(d => d.fase === desafiosFilterMode);
+
+    grid.innerHTML = filtered.map(d => {
+        const faseBadge = d.fase === 'Formulacao'
+            ? `<span style="background: rgba(52, 152, 219, 0.15); color: #2980b9; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">Etapa 1: Formulação & Padronização</span>`
+            : `<span style="background: rgba(22, 160, 133, 0.15); color: #16a085; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">Etapa 2: Articulação, Rotina & Sustentação</span>`;
+
+        const solucoesList = d.solucoesPraticas.map(s => `<li style="margin-bottom: 5px; line-height: 1.4;">${s}</li>`).join('');
+
+        return `
+            <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid ${d.cor}; padding: 18px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 0.85rem; color: ${d.cor}; text-transform: uppercase;">
+                            <i data-lucide="${d.icone}" style="width: 16px; height: 16px;"></i> Desafio ${d.num}
+                        </span>
+                        ${faseBadge}
+                    </div>
+                    <h3 style="font-size: 1.05rem; margin-bottom: 10px; color: var(--text-main);">${d.titulo}</h3>
+                    
+                    <div style="background: rgba(231, 76, 60, 0.06); border-left: 3px solid #e74c3c; padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; font-size: 0.83rem; color: var(--text-main);">
+                        <strong style="color: #c0392b; display: block; margin-bottom: 3px;">⚠ Como a dificuldade se manifesta na prática:</strong>
+                        ${d.problema}
+                        <div style="margin-top: 6px; font-size: 0.76rem; color: var(--text-muted); font-style: italic;">
+                            <strong>Fontes documentais (Rel. 12):</strong> ${d.evidencia}
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(22, 160, 133, 0.06); border-left: 3px solid #16a085; padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.82rem; color: var(--text-main);">
+                        <strong style="color: #16a085; display: block; margin-bottom: 5px;">✓ Protocolo de Soluções Práticas Recomendadas:</strong>
+                        <ul style="list-style: none; padding-left: 0; margin: 0;">
+                            ${solucoesList}
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px dashed var(--border-glass); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="font-size: 0.77rem; color: var(--text-muted); flex: 1;">
+                        <strong>Na Ferramenta:</strong> ${d.ferramentaAcao}
+                    </span>
+                    <button class="indicador-col-add-btn" onclick="document.querySelector('[data-target=\\'${d.targetTab}\\']').click()" style="white-space: nowrap; padding: 6px 12px;">
+                        <i data-lucide="arrow-right-circle" style="width: 14px;"></i> ${d.targetLabel}
+                    </button>
+                </div>
             </div>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
-                <strong>Como se manifesta:</strong> ${d.problema}
+        `;
+    }).join('');
+    lucide.createIcons();
+}
+
+window.runBaseCalculoSimulator = function() {
+    const box = document.getElementById('sim-results-box');
+    if (!box) return;
+
+    const popFixa = parseFloat(document.getElementById('sim-pop-fixa')?.value) || 0;
+    const popFlut = parseFloat(document.getElementById('sim-pop-flut')?.value) || 0;
+    const pesoFlut = (parseFloat(document.getElementById('sim-peso-flut')?.value) || 0) / 100;
+    const areaM2 = parseFloat(document.getElementById('sim-area-m2')?.value) || 1;
+    const kwh = parseFloat(document.getElementById('sim-kwh')?.value) || 0;
+    const m3 = parseFloat(document.getElementById('sim-m3')?.value) || 0;
+    const kg = parseFloat(document.getElementById('sim-kg')?.value) || 0;
+
+    const popEquivalente = Math.max(1, Math.round(popFixa + (popFlut * pesoFlut)));
+    const popApenasFixa = Math.max(1, popFixa);
+
+    const kwhPerCapitaFixa = (kwh / popApenasFixa).toFixed(1);
+    const kwhPerCapitaEq = (kwh / popEquivalente).toFixed(1);
+    const kwhPorM2 = (kwh / areaM2).toFixed(2);
+
+    const m3PerCapitaEq = (m3 / popEquivalente).toFixed(2);
+    const kgPerCapitaEq = (kg / popEquivalente).toFixed(2);
+    const distorcaoPct = popFixa > 0 ? (((popEquivalente - popFixa) / popFixa) * 100).toFixed(1) : '0.0';
+
+    box.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border-glass);">
+            <span><strong>População Equivalente Ponderada:</strong> <strong style="color: var(--accent); font-size: 1rem;">${popEquivalente} pessoas</strong> <small style="color:var(--text-muted);">(${popFixa} fixos + ${Math.round(popFlut * pesoFlut)} equiv. flutuantes)</small></span>
+            <span style="background: rgba(230, 126, 34, 0.15); color: #d35400; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">Evita distorção de +${distorcaoPct}% no consumo per capita</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px;">
+            <div style="background: var(--bg-glass); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-glass);">
+                <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700;">ENERGIA ELÉTRICA</div>
+                <div style="font-weight: 700; color: var(--text-main);">${kwhPerCapitaEq} kWh/hab.eq <small style="color:var(--text-muted); font-weight:normal;">(vs ${kwhPerCapitaFixa} só fixo)</small></div>
+                <div style="font-size: 0.76rem; color: #16a085; font-weight: 600;">Por Área: ${kwhPorM2} kWh/m²</div>
             </div>
-            <div style="font-size: 0.8rem; color: #16a085; font-weight: 600;">
-                <strong>✓ Contribuição da Ferramenta:</strong> ${d.solucao}
+            <div style="background: var(--bg-glass); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-glass);">
+                <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700;">ÁGUA E ESGOTO</div>
+                <div style="font-weight: 700; color: var(--text-main);">${m3PerCapitaEq} m³/hab.eq</div>
+                <div style="font-size: 0.76rem; color: #16a085; font-weight: 600;">Por Área: ${(m3 / areaM2).toFixed(3)} m³/m²</div>
+            </div>
+            <div style="background: var(--bg-glass); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-glass);">
+                <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700;">RESÍDUOS (GRAVIMETRIA)</div>
+                <div style="font-weight: 700; color: var(--text-main);">${kgPerCapitaEq} kg/hab.eq</div>
+                <div style="font-size: 0.76rem; color: #16a085; font-weight: 600;">Meta: Desvio de Aterro > 60%</div>
             </div>
         </div>
-    `).join('');
+    `;
+};
+
+window.toggleDesafioChecklist = function(idx) {
+    desafiosChecklistState[idx] = !desafiosChecklistState[idx];
+    renderDesafiosChecklist();
+};
+
+function renderDesafiosChecklist() {
+    const box = document.getElementById('desafios-checklist-box');
+    const kpi = document.getElementById('desafios-kpi-progresso');
+    if (!box) return;
+
+    const doneCount = desafiosChecklistState.filter(Boolean).length;
+    if (kpi) kpi.textContent = `${doneCount} / ${DESAFIOS_CHECKLIST_ITEMS.length}`;
+
+    box.innerHTML = DESAFIOS_CHECKLIST_ITEMS.map((item, idx) => {
+        const checked = desafiosChecklistState[idx];
+        return `
+            <div onclick="toggleDesafioChecklist(${idx})" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; border: 1px solid ${checked ? '#1abc9c' : 'var(--border-glass)'}; background: ${checked ? 'rgba(26, 188, 156, 0.07)' : 'rgba(0,0,0,0.015)'}; cursor: pointer; transition: all 0.2s;">
+                <input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); toggleDesafioChecklist(${idx});" style="width: 16px; height: 16px; accent-color: #16a085; cursor: pointer;">
+                <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: var(--accent); color: var(--bg-main);">Desafio ${item.ref}</span>
+                <span style="font-size: 0.83rem; color: var(--text-main); flex: 1; ${checked ? 'font-weight: 600;' : ''}">${item.texto}</span>
+            </div>
+        `;
+    }).join('');
 }
+
+window.exportDesafiosPDF = function() {
+    const printWindow = window.open('', '_blank');
+    let html = `<html><head><title>Mapeamento de Dificuldades na Elaboração de PLS e Guia de Soluções Práticas</title><style>
+        @page { size: portrait; margin: 18mm; }
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; color: #2c3e50; line-height: 1.45; font-size: 12px; }
+        .header { border-bottom: 2px solid #2c3e50; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header h1 { margin: 0; font-size: 19px; color: #2c3e50; }
+        .header p { margin: 2px 0 0 0; font-size: 11px; color: #666; font-weight: bold; }
+        .card { border: 1px solid #dcdcdc; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; page-break-inside: avoid; }
+        .card h3 { margin: 0 0 6px 0; font-size: 14px; color: #2c3e50; }
+        .prob { background: #fdf2f2; border-left: 3px solid #e74c3c; padding: 8px 10px; margin-bottom: 8px; font-size: 11.5px; }
+        .sol { background: #f2fbf9; border-left: 3px solid #16a085; padding: 8px 10px; font-size: 11.5px; }
+        ul { margin: 4px 0 0 0; padding-left: 16px; }
+    </style></head><body>
+    <div class="header">
+        <div>
+            <h1>Mapeamento de Dificuldades na Elaboração de PLS & Guia de Soluções Práticas</h1>
+            <p>Grupo de Pesquisa "Ministério Público da União Verde" – ESMPU (Referência: 12ª e 13ª Entregas)</p>
+        </div>
+        <div><p>Emitido em: ${new Date().toLocaleDateString('pt-BR')}</p></div>
+    </div>`;
+
+    DIAG_DESAFIOS_REL12.forEach(d => {
+        html += `<div class="card">
+            <h3>Desafio ${d.num}: ${d.titulo}</h3>
+            <div class="prob"><strong>Como se manifesta:</strong> ${d.problema}<br><small><em>Fontes: ${d.evidencia}</em></small></div>
+            <div class="sol"><strong>Soluções Práticas Recomendadas:</strong><ul>${d.solucoesPraticas.map(s => `<li>${s}</li>`).join('')}</ul>
+            <p style="margin:6px 0 0 0;"><strong>Implementação na Ferramenta Digital:</strong> ${d.ferramentaAcao}</p></div>
+        </div>`;
+    });
+
+    html += `</body></html>`;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+};
 
 // Carrega no Monte seu PLS o Plano da ESMPU (apenas as 10 ações atuais ou completo com as recomendações para cobrir as 11 lacunas)
 window.loadPlsModelESMPU = function(includeRecommendations) {

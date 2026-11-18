@@ -44,7 +44,8 @@
                 </li>
                 <li><button class="nav-btn" data-target="screen-geo"><i data-lucide="map"></i> Geográfico</button></li>
                 <li><button class="nav-btn" data-target="screen-insights"><i data-lucide="trending-up"></i> Insights</button></li>
-                <li><button class="nav-btn" data-target="screen-diagnostico"><i data-lucide="microscope"></i> Diagnóstico ESMPU</button></li>
+                <li><button class="nav-btn" data-target="screen-desafios"><i data-lucide="compass"></i> Desafios & Soluções</button></li>
+                <li><button class="nav-btn" data-target="screen-diagnostico" title="Em Construção – Aguardando tratativas finais com a Unidade Piloto (ESMPU)"><i data-lucide="construction"></i> Diagnóstico ESMPU <span style="font-size: 0.65rem; background: rgba(230, 126, 34, 0.2); color: #e67e22; padding: 2px 6px; border-radius: 8px; margin-left: auto; font-weight: 800;">Em breve</span></button></li>
                 <li><button class="nav-btn" data-target="screen-indicadores"><i data-lucide="target"></i> Indicadores</button></li>
                 <li><button class="nav-btn" data-target="screen-monte-pls"><i data-lucide="shopping-bag"></i> Monte seu PLS</button></li>
                 <li><button class="nav-btn" data-target="screen-coleta"><i data-lucide="clipboard-check"></i> Monitoramento</button></li>
@@ -213,13 +214,92 @@
 
                 </section>
 
-                <!-- Screen: Diagnóstico Institucional ESMPU -->
+                <!-- Screen: Diagnóstico Institucional ESMPU (Em Construção / Aguardando Tratativas Finais + Acervo Guardado) -->
                 <section id="screen-diagnostico" class="screen">
                     <div class="glass-panel screen-header">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
                             <div>
-                                <h2>Diagnóstico Institucional: PLS da ESMPU (Unidade Piloto)</h2>
-                                <p>Análise comparativa das ações consolidadas do PLS 2026–2028 da ESMPU frente aos demais órgãos públicos, identificação de lacunas temáticas e mapeamento dos 6 desafios de governança ambiental.</p>
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <h2><i data-lucide="construction" style="width: 24px; height: 24px; color: #e67e22; vertical-align: middle; margin-right: 6px;"></i> Diagnóstico Institucional: Unidade Piloto ESMPU</h2>
+                                    <span style="background: rgba(230, 126, 34, 0.15); color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Em Construção • Aguardando Validação Assistida</span>
+                                </div>
+                                <p>Espaço reservado para a consolidação final do diagnóstico in loco da Unidade Piloto (ESMPU), após a conclusão das tratativas operacionais e da escuta junto à Comissão de Sustentabilidade.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Painel de Aviso Institucional (Em Construção / Tratativas Finais com a ESMPU) -->
+                    <div class="glass-panel" id="diag-under-construction-banner" style="padding: 36px 32px; border-left: 6px solid #e67e22; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap;">
+                            <div style="width: 68px; height: 68px; border-radius: 16px; background: rgba(230, 126, 34, 0.12); color: #e67e22; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i data-lucide="clock" style="width: 36px; height: 36px;"></i>
+                            </div>
+                            <div style="flex: 1; min-width: 280px;">
+                                <h3 style="font-size: 1.3rem; color: var(--text-main); margin-bottom: 10px; border: none; padding: 0;">
+                                    Módulo em Construção — Aguardando Tratativas Finais do Piloto com a ESMPU
+                                </h3>
+                                <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6; margin-bottom: 12px;">
+                                    Conforme registrado no <strong>Processo SEI nº 0.01.000.1.004154/2024-96</strong> (Despachos SEI nº 0702710 da Comissão de Sustentabilidade, nº 0703463 da Secretaria de Ensino, Pesquisa e Extensão – SEPE e nº 0703781 da Diretoria-Geral), a parceria institucional com a <strong>Escola Superior do Ministério Público da União (ESMPU)</strong> como lócus e unidade piloto da pesquisa encontra-se em fase de <strong>tratativas operacionais finais</strong> para aplicação dos questionários, entrevistas e oficinas de validação junto à equipe responsável pelo PLS 2026–2028.
+                                </p>
+                                <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 18px;">
+                                    Enquanto aguardamos a conclusão dessa etapa de escuta e validação assistida in loco, o levantamento documental preliminar já elaborado pela equipe (comparativo das 10 ações do PLS 2026–2028 da ESMPU frente às 386 ocorrências de 13 órgãos públicos e Matriz de Lacunas) permanece <strong>preservado e guardado no acervo técnico da ferramenta</strong>, podendo ser consultado a qualquer momento pelo botão abaixo.
+                                </p>
+
+                                <!-- Linha do Tempo de Homologação do Piloto -->
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 22px; padding: 14px; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid var(--border-glass);">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <i data-lucide="check-circle-2" style="color: #16a085; width: 20px; height: 20px; flex-shrink: 0;"></i>
+                                        <div>
+                                            <div style="font-size: 0.75rem; font-weight: 800; color: #16a085;">ETAPA CONCLUÍDA</div>
+                                            <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">Análise Documental Preliminar</div>
+                                            <div style="font-size: 0.74rem; color: var(--text-muted);">PLS ESMPU 2016 e 2026–2028</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <i data-lucide="check-circle-2" style="color: #16a085; width: 20px; height: 20px; flex-shrink: 0;"></i>
+                                        <div>
+                                            <div style="font-size: 0.75rem; font-weight: 800; color: #16a085;">ETAPA CONCLUÍDA</div>
+                                            <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">Validação SEI do Plano de Ação</div>
+                                            <div style="font-size: 0.74rem; color: var(--text-muted);">Comissão, SEPE e Diretoria-Geral</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <i data-lucide="loader" style="color: #e67e22; width: 20px; height: 20px; flex-shrink: 0;"></i>
+                                        <div>
+                                            <div style="font-size: 0.75rem; font-weight: 800; color: #e67e22;">EM ANDAMENTO (AGUARDANDO)</div>
+                                            <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">Tratativas Finais & Escuta Técnica</div>
+                                            <div style="font-size: 0.74rem; color: var(--text-muted);">Questionários e entrevistas na ESMPU</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <i data-lucide="flag" style="color: var(--text-muted); width: 20px; height: 20px; flex-shrink: 0;"></i>
+                                        <div>
+                                            <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted);">PRÓXIMA ETAPA</div>
+                                            <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">Consolidação do Piloto & PLS Modelo</div>
+                                            <div style="font-size: 0.74rem; color: var(--text-muted);">Publicação definitiva nesta aba</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Botões de Ação e Consulta ao Acervo Guardado -->
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                                    <button class="btn-pls-session btn-pls-session-primary" onclick="document.querySelector('[data-target=\'screen-desafios\']').click()">
+                                        <i data-lucide="compass"></i> Acessar Mapeamento de Desafios & Soluções Práticas →
+                                    </button>
+                                    <button class="btn-pls-session" id="btn-toggle-diag-archive" onclick="toggleDiagSavedArchive()">
+                                        <i data-lucide="archive"></i> <span id="lbl-toggle-diag-archive">Consultar Dados Preliminares Guardados (Prévia Documental)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Container Guardado: Dados e Gráficos Preliminares do Diagnóstico ESMPU (Oculto por padrão, preservado integralmente) -->
+                    <div id="diag-saved-archive-container" style="display: none;">
+                        <div class="glass-panel" style="margin-bottom: 20px; padding: 14px 20px; background: rgba(230, 126, 34, 0.08); border: 1px dashed #e67e22; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <strong style="color: #d35400; font-size: 0.9rem;"><i data-lucide="folder-lock" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"></i> ACERVO TÉCNICO GUARDADO (VERSÃO DOCUMENTAL PRELIMINAR – 11ª ENTREGA):</strong>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 0 0;">Estes gráficos e tabelas foram gerados a partir de fontes documentais e estão preservados para reativação definitiva após as tratativas finais com a Comissão de Sustentabilidade da ESMPU.</p>
                             </div>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <button class="btn-pls-session" onclick="loadPlsModelESMPU(false)" title="Carregar no assistente as 10 ações mapeadas no PLS da ESMPU">
@@ -230,7 +310,6 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
 
                     <!-- KPIs Diagnóstico -->
                     <div class="indicadores-top-row" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));">
@@ -320,32 +399,146 @@
                         </div>
                     </div>
 
-                    <!-- Tabela das 10 Ações Brutas vs Consolidadas do PLS ESMPU & 6 Desafios (Relatório 12) -->
+                    <!-- Tabela das 10 Ações Brutas vs Consolidadas do PLS ESMPU -->
+                    <div class="glass-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <h3 style="margin-bottom: 4px;">Consolidação das 10 Ações do PLS 2026–2028 da ESMPU</h3>
+                                <p class="chart-desc" style="margin-bottom: 0;">Correspondência entre as "Ações Brutas" (Item 7. Plano de Ações e Metas) e as "Ações Consolidadas" na taxonomia da pesquisa.</p>
+                            </div>
+                            <button class="btn-pls-session" onclick="document.querySelector('[data-target=\'screen-desafios\']').click()">
+                                <i data-lucide="compass"></i> Ver Mapeamento de Desafios & Soluções (Rel. 12) →
+                            </button>
+                        </div>
+                        <div class="table-container" style="max-height: 420px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 18%;">Eixo</th>
+                                        <th style="width: 42%;">"Ação Bruta" PLS ESMPU</th>
+                                        <th style="width: 40%;">Ação Consolidada</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="diag-esmpu-actions-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+                </section>
+
+                <!-- Screen: Mapeamento de Dificuldades & Soluções Práticas (Relatório 12) -->
+                <section id="screen-desafios" class="screen">
+                    <div class="glass-panel screen-header">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h2>Mapeamento de Dificuldades na Elaboração de PLS & Soluções Práticas</h2>
+                                <p>Sistematização dos 6 desafios críticos de governança identificados nos planos do MPU (ESMPU 2016 e 2026–2028, MPF 2024–2026 e Relatório MASA/MPT 2025) e guia prático de soluções operacionais e tecnológicas.</p>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn-pls-session" onclick="exportDesafiosPDF()" title="Imprimir / Exportar Matriz de Desafios e Soluções em PDF">
+                                    <i data-lucide="printer"></i> Exportar Guia de Soluções (PDF)
+                                </button>
+                                <button class="btn-pls-session btn-pls-session-primary" onclick="loadPlsModelESMPU(true)" title="Aplicar soluções diretamente no Assistente Monte seu PLS">
+                                    <i data-lucide="check-circle-2"></i> Aplicar Soluções no Monte seu PLS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPIs / Resumo Executivo do Mapeamento -->
+                    <div class="indicadores-top-row" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));">
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4>6</h4>
+                            <span>Desafios Críticos Mapeados</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">Do diagnóstico inicial à sustentação do ciclo</p>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4>4</h4>
+                            <span>Documentos Institucionais Base</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">PLS ESMPU (2016 e 26–28), MPF e MASA/MPT</p>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4>18</h4>
+                            <span>Diretrizes e Soluções Práticas</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">Protocolos de curto, médio e longo prazo</p>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4 id="desafios-kpi-progresso" style="color: #16a085;">0 / 12</h4>
+                            <span>Checklist de Maturidade Ativo</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">Autoavaliação interativa da unidade</p>
+                        </div>
+                    </div>
+
+                    <!-- Filtro de Dimensão dos Desafios -->
+                    <div class="glass-panel" style="margin-bottom: 20px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <strong style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Filtrar por Etapa do Ciclo do PLS:</strong>
+                            <button class="btn-pls-session btn-pls-session-primary" id="btn-des-filter-all" onclick="filterDesafiosCards('all')">Todos os 6 Desafios</button>
+                            <button class="btn-pls-session" id="btn-des-filter-planejamento" onclick="filterDesafiosCards('Formulacao')">1. Formulação & Padronização (1.1 a 1.3)</button>
+                            <button class="btn-pls-session" id="btn-des-filter-execucao" onclick="filterDesafiosCards('Sustentacao')">2. Articulação, Rotina & Ferramentas (1.4 a 1.6)</button>
+                        </div>
+                        <span style="font-size: 0.82rem; color: var(--text-muted); font-style: italic;">Clique nos botões de ação de cada cartão para ir direto à solução correspondente no painel.</span>
+                    </div>
+
+                    <!-- Grid dos 6 Cartões Detalhados de Dificuldades & Soluções -->
+                    <div id="desafios-detailed-grid" class="chart-grid two-cols" style="margin-bottom: 24px;">
+                        <!-- Populated by renderDesafiosScreen() in app.js -->
+                    </div>
+
+                    <!-- Simulador Prático de Base de Cálculo (Desafio 1.2) + Checklist de Sustentação do Ciclo -->
                     <div class="chart-grid two-cols">
+                        <!-- Simulador de Base de Cálculo e Público Flutuante -->
                         <div class="glass-panel">
-                            <h3 style="margin-bottom: 8px;">Consolidação das 10 Ações do PLS 2026–2028 da ESMPU</h3>
-                            <p class="chart-desc">Correspondência entre as "Ações Brutas" (Item 7. Plano de Ações e Metas) e as "Ações Consolidadas".</p>
-                            <div class="table-container" style="max-height: 420px;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 18%;">Eixo</th>
-                                            <th style="width: 42%;">"Ação Bruta" PLS ESMPU</th>
-                                            <th style="width: 40%;">Ação Consolidada</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="diag-esmpu-actions-tbody">
-                                        <!-- Populated by JS -->
-                                    </tbody>
-                                </table>
+                            <h3 style="margin-bottom: 6px;"><i data-lucide="calculator" style="width: 18px; vertical-align: middle; margin-right: 6px;"></i> Simulador Prático: Base de Cálculo & Público Flutuante (Desafio 1.2)</h3>
+                            <p class="chart-desc">Unidades como a ESMPU possuem público flutuante (alunos, eventos) ou áreas compartilhadas. Simule abaixo como escolher e converter a base de cálculo mais adequada para evitar distorções nas metas do PLS:</p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; margin-bottom: 14px;">
+                                <div>
+                                    <label class="pls-action-label" style="font-size: 0.72rem;">Pop. Fixa (Servidores/Terc.)</label>
+                                    <input type="number" id="sim-pop-fixa" class="glass-input" style="width: 100%; margin-top: 4px; padding: 8px;" value="280" oninput="runBaseCalculoSimulator()">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="font-size: 0.72rem;">Público Flutuante Médio/Mês</label>
+                                    <input type="number" id="sim-pop-flut" class="glass-input" style="width: 100%; margin-top: 4px; padding: 8px;" value="340" oninput="runBaseCalculoSimulator()">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="font-size: 0.72rem;">Peso Presencial Flutuante (%)</label>
+                                    <input type="number" id="sim-peso-flut" class="glass-input" style="width: 100%; margin-top: 4px; padding: 8px;" value="50" min="0" max="100" oninput="runBaseCalculoSimulator()">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="font-size: 0.72rem;">Área Construída (m²)</label>
+                                    <input type="number" id="sim-area-m2" class="glass-input" style="width: 100%; margin-top: 4px; padding: 8px;" value="12500" oninput="runBaseCalculoSimulator()">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; margin-bottom: 16px;">
+                                <div>
+                                    <label class="pls-action-label" style="font-size: 0.72rem; color: var(--color-energia);">Consumo Energia (kWh/mês)</label>
+                                    <input type="number" id="sim-kwh" class="glass-input" style="width: 100%; margin-top: 4px; padding: 8px;" value="38400" oninput="runBaseCalculoSimulator()">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="font-size: 0.72rem; color: var(--color-agua);">Consumo Água (m³/mês)</label>
+                                    <input type="number" id="sim-m3" class="glass-input" style="width: 100%; margin-top: 4px; padding: 8px;" value="310" oninput="runBaseCalculoSimulator()">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="font-size: 0.72rem;">Resíduos Gerados (kg/mês)</label>
+                                    <input type="number" id="sim-kg" class="glass-input" style="width: 100%; margin-top: 4px; padding: 8px;" value="820" oninput="runBaseCalculoSimulator()">
+                                </div>
+                            </div>
+
+                            <div id="sim-results-box" style="padding: 14px; background: rgba(0,0,0,0.03); border-radius: 10px; border: 1px solid var(--border-glass); font-size: 0.85rem;">
+                                <!-- Populated by runBaseCalculoSimulator() -->
                             </div>
                         </div>
 
+                        <!-- Checklist Prático de Maturidade e Sustentação do PLS -->
                         <div class="glass-panel">
-                            <h3 style="margin-bottom: 8px;">Os 6 Desafios de Governança de PLS e Soluções da Pesquisa</h3>
-                            <p class="chart-desc">Síntese do diagnóstico institucional (ESMPU, MPF e MPT) e contribuições implementadas nesta ferramenta.</p>
-                            <div id="diag-desafios-cards" style="display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; padding-right: 4px;">
-                                <!-- Populated by JS -->
+                            <h3 style="margin-bottom: 6px;"><i data-lucide="list-checks" style="width: 18px; vertical-align: middle; margin-right: 6px;"></i> Roteiro Prático de Superação (Autoavaliação da Unidade)</h3>
+                            <p class="chart-desc">Marque as medidas práticas já adotadas pela sua comissão/unidade para acompanhar o nível de prontidão na sustentação do PLS ao longo do ciclo:</p>
+                            <div id="desafios-checklist-box" style="display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 4px;">
+                                <!-- Populated by renderDesafiosChecklist() -->
                             </div>
                         </div>
                     </div>
@@ -871,7 +1064,7 @@
             }
         });
     </script>
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=7"></script>
 </body>
 
 </html>
