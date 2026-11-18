@@ -44,8 +44,10 @@
                 </li>
                 <li><button class="nav-btn" data-target="screen-geo"><i data-lucide="map"></i> Geográfico</button></li>
                 <li><button class="nav-btn" data-target="screen-insights"><i data-lucide="trending-up"></i> Insights</button></li>
+                <li><button class="nav-btn" data-target="screen-diagnostico"><i data-lucide="microscope"></i> Diagnóstico ESMPU</button></li>
                 <li><button class="nav-btn" data-target="screen-indicadores"><i data-lucide="target"></i> Indicadores</button></li>
                 <li><button class="nav-btn" data-target="screen-monte-pls"><i data-lucide="shopping-bag"></i> Monte seu PLS</button></li>
+                <li><button class="nav-btn" data-target="screen-coleta"><i data-lucide="clipboard-check"></i> Monitoramento</button></li>
                 <li><button class="nav-btn" data-target="screen-data"><i data-lucide="database"></i> Relatórios</button></li>
             </ul>
             
@@ -70,8 +72,8 @@
                 <section id="screen-cover" class="screen active">
                     <div class="cover-layout">
                         <div class="cover-text glass-panel">
-                            <h1>Painel Consolidado de Iniciativas</h1>
-                            <h3 class="subtitle">Visão Estratégica 2023-2025</h3>
+                            <h1 id="cover-title">Painel Consolidado de Iniciativas</h1>
+                            <h3 class="subtitle">Visão Estratégica & Diagnóstico Institucional ESMPU (2023–2028)</h3>
                             <p class="presentation">
                                 Bem-vindo ao Painel de Business Intelligence. Este dashboard apresenta de forma
                                 interativa os dados de iniciativas extraídos diretamente da base oficial.
@@ -83,9 +85,10 @@
                             
                             <!-- Quick Filter Buttons -->
                             <div class="quick-filters">
-                                <span class="filter-label">Atalhos de Unidade:</span>
-                                <div class="filter-group">
-                                    <button class="quick-btn" data-filter-unit="MPU"><i data-lucide="shield-check"></i> MPU</button>
+                                <span class="filter-label">Atalhos de Unidade / Escopo:</span>
+                                <div class="filter-group" style="flex-wrap: wrap;">
+                                    <button class="quick-btn" data-filter-unit="ESMPU"><i data-lucide="graduation-cap"></i> ESMPU (Unidade Piloto)</button>
+                                    <button class="quick-btn" data-filter-unit="MPU"><i data-lucide="shield-check"></i> MPU (Todos)</button>
                                     <button class="quick-btn" data-filter-unit="Outros"><i data-lucide="building"></i> Outros Órgãos</button>
                                 </div>
                             </div>
@@ -186,24 +189,166 @@
                 <section id="screen-insights" class="screen">
                     <div class="glass-panel screen-header">
                         <h2>Insights Estratégicos</h2>
-                        <p>Análise avançada de concentração, Pareto e cruzamento de dados por Órgão.</p>
+                        <p>Análise avançada de concentração, Pareto e cruzamento de dados por Unidade/Instituição.</p>
+                    </div>
+
+                    <div id="insights-highlights" class="insights-row" style="margin-bottom: 24px;">
+                        <!-- Populated via updateInsightsHighlights() in app.js -->
                     </div>
                     
                     <div class="chart-grid two-cols">
                         <div class="chart-container glass-panel">
-                            <h3>Análise de Pareto: Iniciativas por Órgão</h3>
+                            <h3>Análise de Pareto: Iniciativas por Unidade/Instituição</h3>
                             <div class="canvas-wrapper-large">
                                 <canvas id="chart-pareto-orgaos"></canvas>
                             </div>
                         </div>
                         <div class="chart-container glass-panel">
-                            <h3>Matriz de Calor: Eixo vs Órgão</h3>
+                            <h3>Matriz de Calor: Eixo vs Unidade/Instituição (Top 12)</h3>
                             <div class="canvas-wrapper-large">
                                 <div id="chart-heatmap-eixo-orgao" style="width:100%; height:100%;"></div>
                             </div>
                         </div>
                     </div>
 
+                </section>
+
+                <!-- Screen: Diagnóstico Institucional ESMPU -->
+                <section id="screen-diagnostico" class="screen">
+                    <div class="glass-panel screen-header">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h2>Diagnóstico Institucional: PLS da ESMPU (Unidade Piloto)</h2>
+                                <p>Análise comparativa das ações consolidadas do PLS 2026–2028 da ESMPU frente aos demais órgãos públicos, identificação de lacunas temáticas e mapeamento dos 6 desafios de governança ambiental.</p>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn-pls-session" onclick="loadPlsModelESMPU(false)" title="Carregar no assistente as 10 ações mapeadas no PLS da ESMPU">
+                                    <i data-lucide="graduation-cap"></i> Abrir PLS ESMPU no Assistente
+                                </button>
+                                <button class="btn-pls-session btn-pls-session-primary" onclick="loadPlsModelESMPU(true)" title="Carregar no assistente o PLS da ESMPU já com as ações recomendadas para suprir as lacunas">
+                                    <i data-lucide="sparkles"></i> Carregar PLS ESMPU + Recomendações
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPIs Diagnóstico -->
+                    <div class="indicadores-top-row" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));">
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4 id="diag-kpi-esmpu">10</h4>
+                            <span>Ações Mapeadas (PLS ESMPU)</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">4 Energia (40%) • 4 Resíduos (40%) • 2 Água (20%)</p>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4 id="diag-kpi-amostra">386</h4>
+                            <span>Ocorrências Amostra Comparativa</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">258 Resíduos (66,84%) • 76 Água (19,69%) • 52 Energia (13,47%)</p>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4 id="diag-kpi-cobertas">6 / 17</h4>
+                            <span>Categorias Consolidadas Cobertas</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">Convergência com práticas mais recorrentes</p>
+                        </div>
+                        <div class="kpi-card glass-panel" style="text-align: center; padding: 18px;">
+                            <h4 id="diag-kpi-lacunas" style="color: #e74c3c;">11</h4>
+                            <span>Lacunas Temáticas Identificadas</span>
+                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">Ausência de monitoramento contínuo e gravimetria</p>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos Comparativos (Relatório 11 - Gráficos 01 a 04) -->
+                    <div class="chart-grid two-cols" style="margin-bottom: 24px;">
+                        <div class="chart-container glass-panel">
+                            <h3>Gráfico 01 – Distribuição Relativa por Eixo (Demais Órgãos × ESMPU)</h3>
+                            <p class="chart-desc">Comparação percentual da composição temática: forte concentração em Resíduos nos demais órgãos (66,84%) vs. equilíbrio entre Energia e Resíduos na ESMPU (40% cada).</p>
+                            <div class="canvas-wrapper" style="height: 320px;">
+                                <canvas id="chart-diag-eixos"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <h3>Gráfico 02 – Eixo Resíduos Sólidos (% Ocorrência Relativa)</h3>
+                            <p class="chart-desc">A ESMPU concentra 100% das ações em Redução na Fonte (50%) e Campanhas Educativas (50%), sem ações consolidadas de Coleta Seletiva, Logística Reversa ou Monitoramento Gravimétrico.</p>
+                            <div class="canvas-wrapper" style="height: 320px;">
+                                <canvas id="chart-diag-residuos"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <h3>Gráfico 03 – Eixo Água (% Ocorrência Relativa)</h3>
+                            <p class="chart-desc">Convergência em Eficiência Hidráulica (100% na ESMPU vs. 40,79% nos demais órgãos), com oportunidade de expansão em Monitoramento, Campanhas, Águas Pluviais e Reúso.</p>
+                            <div class="canvas-wrapper" style="height: 320px;">
+                                <canvas id="chart-diag-agua"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-panel">
+                            <h3>Gráfico 04 – Eixo Energia Elétrica (% Ocorrência Relativa)</h3>
+                            <p class="chart-desc">Destaque da ESMPU em Eficiência Energética (50%), Uso Racional (25%) e Compras Sustentáveis (25%), restando lacunas em Monitoramento Sistemático e Energia Renovável.</p>
+                            <div class="canvas-wrapper" style="height: 320px;">
+                                <canvas id="chart-diag-energia"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matriz de Cobertura e Lacunas (Gap Analysis) -->
+                    <div class="glass-panel" style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-glass); padding-bottom: 12px;">
+                            <div>
+                                <h3>Matriz de Cobertura e Lacunas Temáticas do PLS da ESMPU (Gap Analysis)</h3>
+                                <p class="chart-desc" style="margin-bottom: 0;">Clique em <strong>"+ Incluir no PLS"</strong> em qualquer lacuna para enviar a ação recomendada diretamente para o assistente <em>Monte seu PLS</em>.</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-pls-session" onclick="filterGapTable('all')" id="btn-gap-all">Todas (17)</button>
+                                <button class="btn-pls-session" onclick="filterGapTable('covered')" id="btn-gap-covered">Cobertas pela ESMPU (6)</button>
+                                <button class="btn-pls-session" onclick="filterGapTable('gap')" id="btn-gap-only">Apenas Lacunas (11)</button>
+                            </div>
+                        </div>
+                        <div class="table-container" style="max-height: 480px;">
+                            <table id="diag-gap-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 14%;">Eixo</th>
+                                        <th style="width: 32%;">Ação Consolidada (Taxonomia da Pesquisa)</th>
+                                        <th style="width: 12%; text-align: center;">Demais Órgãos</th>
+                                        <th style="width: 12%; text-align: center;">PLS ESMPU</th>
+                                        <th style="width: 16%; text-align: center;">Status Diagnóstico</th>
+                                        <th style="width: 14%; text-align: center;">Ação Recomendada</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="diag-gap-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tabela das 10 Ações Brutas vs Consolidadas do PLS ESMPU & 6 Desafios (Relatório 12) -->
+                    <div class="chart-grid two-cols">
+                        <div class="glass-panel">
+                            <h3 style="margin-bottom: 8px;">Consolidação das 10 Ações do PLS 2026–2028 da ESMPU</h3>
+                            <p class="chart-desc">Correspondência entre as "Ações Brutas" (Item 7. Plano de Ações e Metas) e as "Ações Consolidadas".</p>
+                            <div class="table-container" style="max-height: 420px;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 18%;">Eixo</th>
+                                            <th style="width: 42%;">"Ação Bruta" PLS ESMPU</th>
+                                            <th style="width: 40%;">Ação Consolidada</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="diag-esmpu-actions-tbody">
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel">
+                            <h3 style="margin-bottom: 8px;">Os 6 Desafios de Governança de PLS e Soluções da Pesquisa</h3>
+                            <p class="chart-desc">Síntese do diagnóstico institucional (ESMPU, MPF e MPT) e contribuições implementadas nesta ferramenta.</p>
+                            <div id="diag-desafios-cards" style="display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; padding-right: 4px;">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Screen: Sistema de Indicadores -->
@@ -256,6 +401,12 @@
                             <label><i data-lucide="book-open" style="width: 14px; height: 14px; vertical-align: middle;"></i> Filtrar por Fonte</label>
                             <select id="filter-indicadores-fonte" class="glass-input" style="width: 100%;">
                                 <option value="">Todas as Fontes</option>
+                            </select>
+                        </div>
+                        <div class="indicadores-filtro-item">
+                            <label><i data-lucide="tag" style="width: 14px; height: 14px; vertical-align: middle;"></i> Filtrar por Categoria</label>
+                            <select id="filter-indicadores-categoria" class="glass-input" style="width: 100%;">
+                                <option value="">Todas as Categorias</option>
                             </select>
                         </div>
                         <div class="indicadores-filtro-item" style="flex: 2;">
@@ -332,15 +483,21 @@
                         </div>
                     </div>
 
-                    <!-- Session Bar: Save / Load / Export -->
+                    <!-- Session Bar: Save / Load / Templates / Export -->
                     <div class="pls-session-bar glass-panel" style="margin-bottom: 20px;">
                         <div class="pls-session-btns">
                             <input type="file" id="pls-session-upload" accept=".json" style="display: none;">
-                            <button id="btn-pls-load" class="btn-pls-session" title="Carregar planejamento salvo do computador">
-                                <i data-lucide="upload-cloud"></i> Carregar Sessão
+                            <button id="btn-pls-load-esmpu" class="btn-pls-session" onclick="loadPlsModelESMPU(false)" title="Carregar as 10 ações atuais do PLS 2026–2028 da ESMPU">
+                                <i data-lucide="graduation-cap"></i> PLS ESMPU (Base)
                             </button>
-                            <button id="btn-pls-save" class="btn-pls-session" title="Salvar planejamento atual no computador">
-                                <i data-lucide="download"></i> Salvar Sessão
+                            <button id="btn-pls-load-esmpu-full" class="btn-pls-session btn-pls-session-primary" onclick="loadPlsModelESMPU(true)" title="Carregar o PLS Modelo da ESMPU completo com ações recomendadas para cobrir lacunas e indicadores gravimétricos">
+                                <i data-lucide="sparkles"></i> PLS Modelo ESMPU (Completo)
+                            </button>
+                            <button id="btn-pls-load" class="btn-pls-session" title="Carregar planejamento salvo do computador (.json)">
+                                <i data-lucide="upload-cloud"></i> Carregar JSON
+                            </button>
+                            <button id="btn-pls-save" class="btn-pls-session" title="Salvar planejamento atual no computador (.json)">
+                                <i data-lucide="download"></i> Salvar JSON
                             </button>
                         </div>
                         <div class="pls-session-btns">
@@ -408,6 +565,143 @@
                                     <i data-lucide="file-text" style="width: 18px; margin-right: 6px;"></i> Finalizar e Gerar PDF
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Screen: Monitoramento & Coleta Padronizada -->
+                <section id="screen-coleta" class="screen">
+                    <div class="glass-panel screen-header">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h2>Coleta Padronizada & Monitoramento Rotineiro</h2>
+                                <p>Infraestrutura digital para registro periódico (mensal/anual), linha de base (2023–2025) e monitoramento gravimétrico de resíduos sólidos (kg), consumo hídrico (m³) e energia elétrica (kWh).</p>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <a href="http://sustentabilidade.site" target="_blank" rel="noopener noreferrer" class="btn-pls-session" style="text-decoration: none;">
+                                    <i data-lucide="external-link"></i> Portal Externo (sustentabilidade.site)
+                                </a>
+                                <button class="btn-pls-session" onclick="loadSampleMonitoringData()" title="Carregar série demonstrativa da Unidade Piloto (ESMPU 2023-2026)">
+                                    <i data-lucide="database"></i> Carregar Série Piloto ESMPU
+                                </button>
+                                <button class="btn-pls-session btn-pls-session-primary" onclick="exportMonitoringExcel()" title="Exportar registros de monitoramento em planilha Excel">
+                                    <i data-lucide="file-spreadsheet"></i> Exportar Planilha de Coleta
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulário Integrado de Coleta -->
+                    <div class="chart-grid two-cols" style="margin-bottom: 24px;">
+                        <div class="glass-panel">
+                            <h3 style="margin-bottom: 12px; border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">
+                                <i data-lucide="clipboard-edit" style="width: 18px; vertical-align: middle; margin-right: 6px;"></i>
+                                Registro Periódico de Consumo e Gravimetria (Resíduos, Água e Energia)
+                            </h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                                <div>
+                                    <label class="pls-action-label">Unidade / Órgão</label>
+                                    <input type="text" id="col-unidade" class="glass-input" style="width: 100%; margin-top: 4px;" value="ESMPU (Unidade Piloto)">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label">Período (Mês/Ano)</label>
+                                    <input type="text" id="col-periodo" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="Ex: 2026-11 ou 2025 (Anual)" value="2026-11">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label">População Ref. (Fixa + Flutuante)</label>
+                                    <input type="number" id="col-populacao" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="Nº pessoas" value="450">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label">Área Construída (m²)</label>
+                                    <input type="number" id="col-area" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="Área em m²" value="12500">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; padding: 12px; background: rgba(0,0,0,0.02); border-radius: 10px; border: 1px solid var(--border-glass);">
+                                <div>
+                                    <label class="pls-action-label" style="color: var(--color-energia);">Energia Consumida (kWh)</label>
+                                    <input type="number" step="0.01" id="col-energia-kwh" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="kWh no período" value="38400">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="color: var(--color-energia);">Geração Fotovoltaica (kWh)</label>
+                                    <input type="number" step="0.01" id="col-energia-solar" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="kWh gerados" value="4200">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="color: var(--color-agua);">Água Consumida (m³)</label>
+                                    <input type="number" step="0.01" id="col-agua-m3" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="m³ no período" value="310">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label" style="color: var(--color-agua);">Água Reúso / Pluvial (m³)</label>
+                                    <input type="number" step="0.01" id="col-agua-reuso" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="m³ reaproveitados" value="25">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; padding: 12px; background: rgba(0,0,0,0.02); border-radius: 10px; border: 1px solid var(--border-glass);">
+                                <div>
+                                    <label class="pls-action-label">Recicláveis → Cooperativas (kg)</label>
+                                    <input type="number" step="0.01" id="col-res-reciclavel" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="Peso em kg" value="420">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label">Orgânicos → Compostagem (kg)</label>
+                                    <input type="number" step="0.01" id="col-res-compostagem" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="Peso em kg" value="110">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label">Rejeitos → Aterro Sanitário (kg)</label>
+                                    <input type="number" step="0.01" id="col-res-aterro" class="glass-input" style="width: 100%; margin-top: 4px;" placeholder="Peso em kg" value="290">
+                                </div>
+                                <div>
+                                    <label class="pls-action-label">Área Responsável pelo Envio</label>
+                                    <select id="col-area-resp" class="glass-input" style="width: 100%; margin-top: 4px;">
+                                        <option value="Comissão de Sustentabilidade">Comissão de Sustentabilidade</option>
+                                        <option value="Engenharia e Manutenção">Engenharia e Manutenção</option>
+                                        <option value="Contratos e Serviços Gerais">Contratos e Serviços Gerais</option>
+                                        <option value="Compras e Licitações">Compras e Licitações</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                <button class="pls-btn-add" onclick="addMonitoringRecord()" style="padding: 10px 20px; font-size: 0.9rem;">
+                                    <i data-lucide="plus-circle"></i> Registrar Medição na Série Histórica
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="chart-container glass-panel">
+                            <h3>Monitoramento Gravimétrico de Resíduos Sólidos (kg) e Taxa de Recuperação</h3>
+                            <p class="chart-desc">Solução para a principal lacuna identificada no Relatório 10: acompanhamento contínuo em quilogramas (Recicláveis, Compostagem e Aterro).</p>
+                            <div class="canvas-wrapper" style="height: 330px;">
+                                <canvas id="chart-coleta-gravimetria"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Registros de Monitoramento -->
+                    <div class="glass-panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3>Série Histórica de Monitoramento e Indicadores Calculados (Total, Per Capita e por m²)</h3>
+                            <span id="coleta-records-count" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">0 registros</span>
+                        </div>
+                        <div class="table-container" style="max-height: 360px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Período</th>
+                                        <th>Unidade</th>
+                                        <th>Energia (kWh | Per Capita)</th>
+                                        <th>Água (m³ | Per Capita)</th>
+                                        <th>Resíduos Total (kg)</th>
+                                        <th>Cooperativas / Compost. (kg)</th>
+                                        <th>Aterro (kg)</th>
+                                        <th>Taxa Desvio Aterro (%)</th>
+                                        <th>Área Resp.</th>
+                                        <th style="text-align: center;">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="coleta-records-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -577,7 +871,7 @@
             }
         });
     </script>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 
 </html>

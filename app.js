@@ -20,8 +20,10 @@ var geoJsonData = null;
 
 // Variáveis para Indicadores
 var indicadoresData = [];
-var indicadoresFilters = { Eixo: '', Fonte: '', Busca: '' };
+var indicadoresFilters = { Eixo: '', Fonte: '', Categoria: '', Busca: '' };
 var indPagination = { currentPage: 1, pageSize: 20 };
+var gapFilterMode = 'all';
+var monitoringRecords = [];
 
 // ==========================================
 // STATE MANAGEMENT & CROSS FILTERING
@@ -92,8 +94,10 @@ const GlobalState = {
             
             if (this.specialFilters['UnidadeGroup']) {
                 const orgao = String(row['Órgão'] || '').toUpperCase().trim();
-                const isMPU = orgao.includes('MPU') || orgao.includes('MPF') || orgao.includes('MPT') || orgao.includes('MPM') || orgao.includes('CNMP');
+                const unidade = String(row['Unidade'] || '').toUpperCase().trim();
+                const isMPU = orgao.includes('MPU') || orgao.includes('MPF') || orgao.includes('MPT') || orgao.includes('MPM') || orgao.includes('CNMP') || unidade === 'ESMPU';
                 
+                if (this.specialFilters['UnidadeGroup'] === 'ESMPU' && unidade !== 'ESMPU') return false;
                 if (this.specialFilters['UnidadeGroup'] === 'MPU' && !isMPU) return false;
                 if (this.specialFilters['UnidadeGroup'] === 'Outros' && isMPU) return false;
             }
@@ -279,9 +283,52 @@ function animateValue(id, start, end, duration) {
 // ==========================================
 // DATA LOADING
 // ==========================================
+function sanitizeRawData(rows) {
+    const clean = rows.map(r => {
+        let eixo = String(r['Eixo'] || '').replace(/\s+/g, ' ').trim();
+        if (eixo.toLowerCase() === 'energia elétrica') eixo = 'Energia Elétrica';
+        let cons = String(r['Iniciativa consolidada'] || '').replace(/\s+/g, ' ').trim();
+        cons = cons.replace(/sistemas \/equipamentos/gi, 'sistemas/equipamentos').replace(/eficiencia/gi, 'eficiência');
+        if (/^Captação e aproveitamento de águas pluviais/i.test(cons)) {
+            cons = 'Captação e aproveitamento de águas pluviais para fins não potáveis';
+        }
+        if (/^Reuso de água/i.test(cons)) {
+            cons = 'Reúso de água para fins não potáveis';
+        }
+        return {
+            ...r,
+            'Eixo': eixo,
+            'Estado': String(r['Estado'] || '').replace(/\s+/g, ' ').trim(),
+            'Unidade': String(r['Unidade'] || '').replace(/\s+/g, ' ').trim(),
+            'Iniciativa BRUTA': String(r['Iniciativa BRUTA'] || '').replace(/\s+/g, ' ').trim(),
+            'Iniciativa consolidada': cons,
+            'Órgão': String(r['Órgão'] || '').replace(/\s+/g, ' ').trim()
+        };
+    });
+
+    // Garantir que as 10 ações do PLS da ESMPU (Relatório 11) estejam sempre presentes
+    const hasEsmpu = clean.some(d => String(d['Unidade']).toUpperCase() === 'ESMPU');
+    if (!hasEsmpu) {
+        const esmpuRows = [
+            { Eixo: 'Água', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Instalar redutor de pressão nas torneiras dos andares mais baixos.', 'Iniciativa consolidada': 'Adequação/substituição de sistemas/equipamentos visando maior eficiência hidráulica', 'Órgão': 'MPU' },
+            { Eixo: 'Água', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Utilizar irrigador automático nos jardins do térreo.', 'Iniciativa consolidada': 'Adequação/substituição de sistemas/equipamentos visando maior eficiência hidráulica', 'Órgão': 'MPU' },
+            { Eixo: 'Resíduos', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Incentivar o uso de utensílios duráveis (copos, canecas, xícaras) para o público interno obrigatoriamente e para o público externo; campanha voltada para o público externo.', 'Iniciativa consolidada': 'Campanhas educativas e de conscientização sobre redução, separação e destinação adequada de resíduos', 'Órgão': 'MPU' },
+            { Eixo: 'Resíduos', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Configurar todas as impressoras para impressão frente e verso.', 'Iniciativa consolidada': 'Ações para redução da geração de resíduos', 'Órgão': 'MPU' },
+            { Eixo: 'Resíduos', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Instruir processo para viabilizar a contratação do PGRS.', 'Iniciativa consolidada': 'Ações para redução da geração de resíduos', 'Órgão': 'MPU' },
+            { Eixo: 'Resíduos', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Promover campanhas educativas internas (cartazes, e-mail, eventos). Divulgar orientações sobre resíduos especiais (pilhas, eletrônicos etc.).', 'Iniciativa consolidada': 'Campanhas educativas e de conscientização sobre redução, separação e destinação adequada de resíduos', 'Órgão': 'MPU' },
+            { Eixo: 'Energia Elétrica', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Inserir exigência de eficiência energética mínima nos termos de referência, sempre que possível.', 'Iniciativa consolidada': 'Gestão de contratos e compras sustentáveis com a inclusão de critérios ambientais para aquisição de equipamentos de maior eficiência energética em contratações', 'Órgão': 'MPU' },
+            { Eixo: 'Energia Elétrica', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Instalar sensor de presença e fotovoltaico na garagem.', 'Iniciativa consolidada': 'Adequação/substituição de sistemas/equipamentos visando maior eficiência energética', 'Órgão': 'MPU' },
+            { Eixo: 'Energia Elétrica', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Individualizar circuito de iluminação comum para permitir escolha de lâmpadas pontuais.', 'Iniciativa consolidada': 'Adequação/substituição de sistemas/equipamentos visando maior eficiência energética', 'Órgão': 'MPU' },
+            { Eixo: 'Energia Elétrica', Estado: 'DF', Unidade: 'ESMPU', 'Iniciativa BRUTA': 'Conscientizar o público interno sobre a necessidade de desligar luminárias, ar-condicionado e computador, sempre que possível.', 'Iniciativa consolidada': 'Campanhas de uso racional de energia elétrica', 'Órgão': 'MPU' }
+        ];
+        clean.push(...esmpuRows);
+    }
+    return clean;
+}
+
 async function loadData() {
     try {
-        const response = await fetch('Iniciativas_Consolidadas_20260309_v03.xlsx');
+        const response = await fetch('Iniciativas_Consolidadas_20260309_v03.xlsx?v=' + Date.now());
         if (!response.ok) {
             if (response.status === 404) throw new Error("Arquivo Excel não encontrado.");
             throw new Error(`Erro ao buscar arquivo: ${response.status} ${response.statusText}`);
@@ -292,15 +339,17 @@ async function loadData() {
         
         if (!workbook.SheetNames.length) throw new Error("O arquivo Excel parece estar vazio.");
         
-        rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        rawData = sanitizeRawData(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]));
 
         loadingStatus.textContent = "Processando Excel...";
         initLegend(); // Inicializa cores dinâmicas dos eixos
         processAndRender();
+        initDiagnosticoESMPU();
+        initMonitoringModule();
 
         loadingStatus.textContent = "Processando Indicadores...";
         try {
-            const indRes = await fetch('indicadores_normalizado.xlsx');
+            const indRes = await fetch('indicadores_normalizado.xlsx?v=' + Date.now());
             if (indRes.ok) {
                 const indBuffer = await indRes.arrayBuffer();
                 const indWb = XLSX.read(indBuffer, { type: 'array' });
@@ -415,13 +464,30 @@ function updateAllChartsColors() {
         const labels = chart.data.labels;
         const colors = getThemeColors(labels);
         
+        if (key === 'diagEixos' || key === 'diagResiduos' || key === 'diagAgua' || key === 'diagEnergia' || key === 'coletaGravimetria') {
+            if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                chart.options.plugins.legend.labels.color = getCssVar('--text-main');
+            }
+            if (chart.options.scales && chart.options.scales.x) {
+                chart.options.scales.x.ticks.color = getCssVar('--text-muted');
+                if (chart.options.scales.x.grid) chart.options.scales.x.grid.color = getCssVar('--border-glass');
+            }
+            if (chart.options.scales && chart.options.scales.y) {
+                chart.options.scales.y.ticks.color = getCssVar('--text-muted');
+                if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = getCssVar('--border-glass');
+            }
+            chart.update();
+            continue;
+        }
+
         chart.data.datasets.forEach(dataset => {
-            if (key === 'coverEixos' || key === 'fullEixos') {
+            if (key === 'coverEixos' || key === 'fullEixos' || key === 'indicadoresEixos') {
                 // A cor de cada fatia ou barra depende especificamente da label e da escala estratégica
                 dataset.backgroundColor = labels.map(label => GlobalState.customColors[label] || colors[0]);
-            } else if (key === 'fullUnidades' || key === 'pareto') {
-                // Evitar escala arco-íris nesses gráficos para não confundir com os Eixos. Cor neutra unificada.
+            } else if (key === 'fullUnidades') {
                 dataset.backgroundColor = getCssVar('--accent');
+            } else if (key === 'pareto') {
+                dataset.backgroundColor = labels.map(u => u === 'ESMPU' ? '#e74c3c' : getCssVar('--accent'));
             } else if (dataset.label && GlobalState.customColors[dataset.label]) {
                 // Gráficos empilhados usam o dataset.label como nome de Eixo
                 dataset.backgroundColor = GlobalState.customColors[dataset.label];
@@ -648,10 +714,11 @@ function processAndRender() {
 function renderInsights(data) {
     renderPareto(data);
     renderHeatmap(data);
+    updateInsightsHighlights(data);
 }
 
 function renderPareto(data) {
-    const counts = countBy(data, 'Órgão');
+    const counts = countBy(data, 'Unidade');
     counts.sort((a, b) => b[1] - a[1]);
     
     const labels = counts.map(x => x[0]);
@@ -659,9 +726,9 @@ function renderPareto(data) {
 
     const dataset = [
         {
-            label: 'Volume por Órgão',
+            label: 'Volume por Unidade',
             data: values,
-            backgroundColor: getCssVar('--accent'),
+            backgroundColor: labels.map(u => u === 'ESMPU' ? '#e74c3c' : getCssVar('--accent')),
             borderRadius: 6
         }
     ];
@@ -686,7 +753,7 @@ function renderPareto(data) {
         }
     };
 
-    createOrUpdateChart('chart-pareto-orgaos', 'bar', labels, dataset, 'pareto', 'Órgão', options);
+    createOrUpdateChart('chart-pareto-orgaos', 'bar', labels, dataset, 'pareto', 'Unidade', options);
 }
 
 function renderHeatmap(data) {
@@ -695,30 +762,43 @@ function renderHeatmap(data) {
     
     if (!charts.heatmap) {
         charts.heatmap = echarts.init(el);
+        charts.heatmap.on('click', (params) => {
+            if (params.data && params.data.unidadeName) {
+                GlobalState.setFilter('Unidade', params.data.unidadeName);
+            }
+        });
         window.addEventListener('resize', () => charts.heatmap && charts.heatmap.resize());
     }
 
     const eixos = [...new Set(rawData.map(d => d['Eixo']))].filter(Boolean);
-    const orgaos = [...new Set(rawData.map(d => d['Órgão']))].filter(Boolean).slice(0, 10); // Limitar top 10 para visualização
+    // Ordenar unidades por volume total e garantir que a ESMPU esteja presente na Matriz de Calor
+    const sortedUnits = countBy(data.length > 0 ? data : rawData, 'Unidade').map(x => x[0]).filter(Boolean);
+    let orgaos = sortedUnits.slice(0, 12);
+    if (!orgaos.includes('ESMPU') && rawData.some(d => d['Unidade'] === 'ESMPU')) {
+        orgaos.pop();
+        orgaos.push('ESMPU');
+    }
 
     const heatmapData = [];
     let maxVal = 0;
     orgaos.forEach(org => {
         eixos.forEach(eixo => {
-            const val = data.filter(d => d['Órgão'] === org && d['Eixo'] === eixo).length;
+            const val = data.filter(d => d['Unidade'] === org && d['Eixo'] === eixo).length;
             if (val > maxVal) maxVal = val;
         });
     });
 
     orgaos.forEach((org, orgIdx) => {
         eixos.forEach((eixo, eixoIdx) => {
-            const val = data.filter(d => d['Órgão'] === org && d['Eixo'] === eixo).length;
+            const val = data.filter(d => d['Unidade'] === org && d['Eixo'] === eixo).length;
             const eixoColor = GlobalState.customColors[eixo] || getCssVar('--accent');
-            // Calcula intensidade baseada no valor (min 10% opacity se val > 0)
-            const alpha = val > 0 ? Math.max(0.1, val / maxVal) : 0;
+            // Calcula intensidade baseada no valor (min 15% opacity se val > 0)
+            const alpha = val > 0 ? Math.max(0.18, val / (maxVal || 1)) : 0;
             
             heatmapData.push({
                 value: [eixoIdx, orgIdx, val || '-'],
+                unidadeName: org,
+                eixoName: eixo,
                 itemStyle: { color: hexToRGBA(eixoColor, alpha) },
                 label: {
                     show: GlobalState.showLabels && val > 0,
@@ -735,20 +815,31 @@ function renderHeatmap(data) {
     });
 
     const option = {
-        tooltip: { position: 'top' },
-        grid: { height: '70%', top: '15%', left: '15%' },
+        tooltip: {
+            position: 'top',
+            formatter: (p) => `${p.data.unidadeName} • ${p.data.eixoName}: <strong>${p.data.value[2]}</strong> iniciativa(s)`
+        },
+        grid: { height: '74%', top: '10%', left: '20%', right: '5%' },
         xAxis: { 
             type: 'category', 
             data: eixos, 
             splitArea: { show: true }, 
             axisLabel: { 
                 interval: 0, 
-                rotate: 30,
+                rotate: 15,
                 color: (val) => GlobalState.customColors[val] || getCssVar('--text-main'),
                 fontWeight: 'bold'
             } 
         },
-        yAxis: { type: 'category', data: orgaos, splitArea: { show: true } },
+        yAxis: {
+            type: 'category',
+            data: orgaos,
+            splitArea: { show: true },
+            axisLabel: {
+                color: (val) => val === 'ESMPU' ? '#e74c3c' : getCssVar('--text-main'),
+                fontWeight: (val) => val === 'ESMPU' ? 'bold' : 'normal'
+            }
+        },
         visualMap: { show: false }, // Desativado pois usamos cores manuais por Eixo
         series: [{
             name: 'Volume',
@@ -766,52 +857,42 @@ function updateInsightsHighlights(data) {
     const container = document.getElementById('insights-highlights');
     if (!container) return;
 
-    const countsOrg = countBy(rawData, 'Órgão');
-    const leaderOrg = countsOrg[0] ? countsOrg[0][0] : '-';
-    const leaderVal = countsOrg[0] ? countsOrg[0][1] : 0;
+    const base = data.length > 0 ? data : rawData;
+    const countsUnit = countBy(base, 'Unidade');
+    const leaderOrg = countsUnit[0] ? countsUnit[0][0] : '-';
+    const leaderVal = countsUnit[0] ? countsUnit[0][1] : 0;
 
-    const countsState = countBy(rawData, 'Estado');
+    const countsState = countBy(base, 'Estado');
     const leaderState = countsState[0] ? countsState[0][0] : '-';
+    const leaderStateVal = countsState[0] ? countsState[0][1] : 0;
 
-    const eixosPerOrg = {};
-    rawData.forEach(d => {
-        if (!eixosPerOrg[d['Órgão']]) eixosPerOrg[d['Órgão']] = new Set();
-        if (d['Eixo']) eixosPerOrg[d['Órgão']].add(d['Eixo']);
-    });
-    
-    let maxDiversityOrg = '-';
-    let maxDiversityVal = 0;
-    Object.entries(eixosPerOrg).forEach(([org, set]) => {
-        if (set.size > maxDiversityVal) {
-            maxDiversityVal = set.size;
-            maxDiversityOrg = org;
-        }
-    });
+    const esmpuCount = rawData.filter(d => d['Unidade'] === 'ESMPU').length;
+    const topEixo = countBy(base, 'Eixo')[0];
 
     container.innerHTML = `
         <div class="insight-card">
             <div class="icon-box"><i data-lucide="award"></i></div>
-            <h4>Órgão Líder</h4>
+            <h4>Unidade Líder no Filtro</h4>
             <p>${leaderOrg}</p>
-            <span class="trend">${leaderVal} iniciativas totais</span>
+            <span class="trend">${leaderVal} iniciativas mapeadas</span>
         </div>
         <div class="insight-card">
             <div class="icon-box"><i data-lucide="map"></i></div>
-            <h4>Estado em Destaque</h4>
+            <h4>UF com Maior Concentração</h4>
             <p>${leaderState}</p>
-            <span class="trend">Maior volume geográfico</span>
+            <span class="trend">${leaderStateVal} iniciativas no escopo</span>
         </div>
-        <div class="insight-card">
-            <div class="icon-box"><i data-lucide="zap"></i></div>
-            <h4>Maior Diversidade</h4>
-            <p>${maxDiversityOrg}</p>
-            <span class="trend">Atua em ${maxDiversityVal} eixos estratégicos</span>
+        <div class="insight-card" style="cursor:pointer;" onclick="document.querySelector('[data-target=\\'screen-diagnostico\\']').click()">
+            <div class="icon-box" style="background: #e74c3c;"><i data-lucide="graduation-cap"></i></div>
+            <h4>Unidade Piloto (ESMPU)</h4>
+            <p>${esmpuCount} Ações (3 Eixos)</p>
+            <span class="trend">Clique para abrir o Diagnóstico Institucional →</span>
         </div>
         <div class="insight-card">
             <div class="icon-box"><i data-lucide="target"></i></div>
-            <h4>Foco Atual</h4>
-            <p>${countBy(data, 'Eixo')[0] ? countBy(data, 'Eixo')[0][0] : '-'}</p>
-            <span class="trend">Eixo com mais ações filtradas</span>
+            <h4>Eixo Predominante</h4>
+            <p>${topEixo ? topEixo[0] : '-'}</p>
+            <span class="trend">${topEixo ? topEixo[1] + ' ocorrências no filtro atual' : '-'}</span>
         </div>
     `;
     lucide.createIcons();
@@ -981,9 +1062,9 @@ function updateAllChartsFontSize() {
             series: [{ label: { show: GlobalState.showLabels, textStyle: { fontSize: GlobalState.fontSize } } }]
         });
     }
-    if (heatmapChart) {
+    if (charts.heatmap) {
         // Usa Merge raso do ECharts para não reconstruir o canvas do zero e evitar call stack loops
-        heatmapChart.setOption({
+        charts.heatmap.setOption({
             series: [{
                 label: {
                     show: GlobalState.showLabels,
@@ -1030,15 +1111,19 @@ function renderTable() {
 function initIndicadores() {
     const selectEixo = document.getElementById('filter-indicadores-eixo');
     const selectFonte = document.getElementById('filter-indicadores-fonte');
+    const selectCat = document.getElementById('filter-indicadores-categoria');
 
     if (!selectEixo || !selectFonte) return;
 
-    // Contar ocorrências por Eixo e Fonte
+    // Contar ocorrências por Eixo, Fonte e Categoria
     const eixoCount = {};
     const fonteCount = {};
+    const catCount = {};
     indicadoresData.forEach(d => {
         eixoCount[d.eixo] = (eixoCount[d.eixo] || 0) + 1;
         fonteCount[d.fonte] = (fonteCount[d.fonte] || 0) + 1;
+        const c = d.categoria || 'não classificado';
+        catCount[c] = (catCount[c] || 0) + 1;
     });
 
     // Limpar e popular selects com contagem
@@ -1051,6 +1136,18 @@ function initIndicadores() {
     Object.entries(fonteCount).sort((a, b) => a[0].localeCompare(b[0])).forEach(([f, n]) => {
         selectFonte.add(new Option(`${f} (${n})`, f));
     });
+
+    if (selectCat) {
+        selectCat.innerHTML = '<option value="">Todas as Categorias</option>';
+        Object.entries(catCount).sort((a, b) => a[0].localeCompare(b[0])).forEach(([c, n]) => {
+            selectCat.add(new Option(`${c} (${n})`, c));
+        });
+        selectCat.addEventListener('change', (e) => {
+            indicadoresFilters.Categoria = e.target.value;
+            indPagination.currentPage = 1;
+            renderIndicadores();
+        });
+    }
 
     // Event listeners dos filtros
     selectEixo.addEventListener('change', (e) => {
@@ -1078,9 +1175,10 @@ function initIndicadores() {
     const btnLimpar = document.getElementById('btn-limpar-indicadores');
     if (btnLimpar) {
         btnLimpar.addEventListener('click', () => {
-            indicadoresFilters = { Eixo: '', Fonte: '', Busca: '' };
+            indicadoresFilters = { Eixo: '', Fonte: '', Categoria: '', Busca: '' };
             selectEixo.value = '';
             selectFonte.value = '';
+            if (selectCat) selectCat.value = '';
             if (searchInput) searchInput.value = '';
             indPagination.currentPage = 1;
             renderIndicadores();
@@ -1112,6 +1210,7 @@ function getIndicadoresFiltrados() {
     return indicadoresData.filter(d => {
         if (indicadoresFilters.Eixo && d.eixo !== indicadoresFilters.Eixo) return false;
         if (indicadoresFilters.Fonte && d.fonte !== indicadoresFilters.Fonte) return false;
+        if (indicadoresFilters.Categoria && (d.categoria || 'não classificado') !== indicadoresFilters.Categoria) return false;
         if (indicadoresFilters.Busca) {
             const termo = indicadoresFilters.Busca;
             const match = (
@@ -1642,15 +1741,30 @@ function renderPlsStep2() {
                 </p>`;
         } else {
             axisActions.forEach((act, idx) => {
+                const badgeOrigem = act.origem ? `<span style="background: rgba(26,188,156,0.15); color: #16a085; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; margin-left: 8px;">${act.origem}</span>` : '';
                 actionsListHTML += `
                     <div class="pls-action-item-card">
                         <div class="pls-action-item-header">
-                            <strong style="color: var(--text-main); font-size: 0.95rem;">${idx + 1}. Ação: ${act.nome}</strong>
+                            <div>
+                                <strong style="color: var(--text-main); font-size: 0.95rem;">${idx + 1}. Ação Consolidada: ${act.nome}</strong>
+                                ${badgeOrigem}
+                            </div>
                             <button class="pls-btn-remove" onclick="removePlsAction('${act.id}')" title="Excluir ação">
                                 <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                             </button>
                         </div>
-                        <p style="font-size: 0.88rem; color: var(--text-muted); white-space: pre-wrap; margin: 0; font-style: italic;"><strong>Forma de Trabalho:</strong> ${act.descricao}</p>
+                        <p style="font-size: 0.88rem; color: var(--text-muted); white-space: pre-wrap; margin: 0; font-style: italic;"><strong>Forma de Trabalho (Ação Bruta / Operacional):</strong> ${act.descricao}</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--border-glass); font-size: 0.78rem; color: var(--text-muted);">
+                            <span><strong>Área Responsável:</strong> ${act.areaResponsavel || 'Comissão de Sustentabilidade'}</span>
+                            <span>•</span>
+                            <span><strong>Periodicidade:</strong> ${act.periodicidade || 'Mensal'}</span>
+                            <span>•</span>
+                            <span><strong>Base de Cálculo:</strong> ${act.baseCalculo || 'Total Absoluto'}</span>
+                            <span>•</span>
+                            <span><strong>Linha de Base (2023–2025):</strong> ${act.linhaBase || 'A levantar'}</span>
+                            <span>•</span>
+                            <span><strong>Meta (2026–2028):</strong> ${act.meta || 'A definir'}</span>
+                        </div>
                     </div>`;
             });
         }
@@ -1661,7 +1775,7 @@ function renderPlsStep2() {
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 16px; background: rgba(0,0,0,0.01); border-radius: 12px; border: 1px dashed var(--border-glass);">
-                <strong style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Adicionar Ação Corporativa:</strong>
+                <strong style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Adicionar Ação Corporativa (Alinhada aos 6 Desafios de Governança):</strong>
                 
                 <!-- Dropdown de Taxonomia -->
                 <select id="pls-action-select-${idSuffix}" class="glass-input" style="width: 100%; font-size: 0.88rem;" onchange="handlePlsTaxonomyChange('${eixo}', this)">
@@ -1673,14 +1787,59 @@ function renderPlsStep2() {
                     <input type="text" id="pls-action-custom-input-${idSuffix}" placeholder="Digite o nome da ação personalizada..." class="glass-input" style="width: 100%; font-size: 0.88rem; margin-top: 4px;">
                 </div>
                 
-                <textarea id="pls-action-desc-input-${idSuffix}" placeholder="Descreva aqui a forma de trabalho do lugar, ou seja, detalhe como a ação será executada operacionalmente..." class="pls-action-textarea" style="min-height: 70px;"></textarea>
+                <textarea id="pls-action-desc-input-${idSuffix}" placeholder="Descreva aqui a Forma de Trabalho operacional (Ação Bruta), detalhando como a iniciativa será executada na unidade..." class="pls-action-textarea" style="min-height: 68px;"></textarea>
+
+                <!-- Campos de Governança (Relatório 12: Articulação de Áreas, Linha de Base, Base de Cálculo e Metas) -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px;">
+                    <div>
+                        <label class="pls-action-label" style="font-size: 0.72rem; margin-bottom: 3px;">Área Responsável (Desafio 1.4)</label>
+                        <select id="pls-action-area-${idSuffix}" class="glass-input" style="width: 100%; font-size: 0.82rem; padding: 8px 10px;">
+                            <option value="Comissão de Sustentabilidade">Comissão de Sustentabilidade</option>
+                            <option value="Engenharia e Manutenção">Engenharia e Manutenção</option>
+                            <option value="Compras e Licitações">Compras e Licitações</option>
+                            <option value="Contratos e Serviços Gerais">Contratos e Serviços Gerais</option>
+                            <option value="Comunicação Social">Comunicação Social</option>
+                            <option value="Gestão de Pessoas">Gestão de Pessoas</option>
+                            <option value="Tecnologia da Informação (TI)">Tecnologia da Informação (TI)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="pls-action-label" style="font-size: 0.72rem; margin-bottom: 3px;">Periodicidade (Desafio 1.5)</label>
+                        <select id="pls-action-period-${idSuffix}" class="glass-input" style="width: 100%; font-size: 0.82rem; padding: 8px 10px;">
+                            <option value="Mensal">Mensal</option>
+                            <option value="Trimestral">Trimestral</option>
+                            <option value="Semestral">Semestral</option>
+                            <option value="Anual">Anual</option>
+                            <option value="Contínua">Contínua</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="pls-action-label" style="font-size: 0.72rem; margin-bottom: 3px;">Base de Cálculo (Desafio 1.2)</label>
+                        <select id="pls-action-basecalc-${idSuffix}" class="glass-input" style="width: 100%; font-size: 0.82rem; padding: 8px 10px;">
+                            <option value="Total Absoluto">Total Absoluto</option>
+                            <option value="Per Capita (Pop. Fixa + Flutuante)">Per Capita (Pop. Fixa + Flutuante)</option>
+                            <option value="Por Área Construída (m²)">Por Área Construída (m²)</option>
+                            <option value="Gravimétrico Contínuo (kg)">Gravimétrico Contínuo (kg)</option>
+                            <option value="Indicador de Processo / Entrega">Indicador de Processo / Entrega</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="pls-action-label" style="font-size: 0.72rem; margin-bottom: 3px;">Linha de Base 2023–2025 (Desafio 1.1)</label>
+                        <input type="text" id="pls-action-baseline-${idSuffix}" placeholder="Ex: Média 2023-2025 ou Marco Zero" class="glass-input" style="width: 100%; font-size: 0.82rem; padding: 8px 10px;">
+                    </div>
+                    <div>
+                        <label class="pls-action-label" style="font-size: 0.72rem; margin-bottom: 3px;">Meta 2026–2028 (Desafio 1.2)</label>
+                        <input type="text" id="pls-action-meta-${idSuffix}" placeholder="Ex: Reduzir 10% até 2028 / 100% executado" class="glass-input" style="width: 100%; font-size: 0.82rem; padding: 8px 10px;">
+                    </div>
+                </div>
+
                 <div style="display: flex; justify-content: flex-end;">
-                    <button class="pls-btn-add" onclick="addPlsAction('${eixo}')" style="padding: 8px 16px;"><i data-lucide="plus"></i> Incluir Ação</button>
+                    <button class="pls-btn-add" onclick="addPlsAction('${eixo}')" style="padding: 8px 16px;"><i data-lucide="plus"></i> Incluir Ação no Plano</button>
                 </div>
             </div>
             
             <div class="pls-actions-list-wrapper">
-                <strong style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Ações Cadastradas:</strong>
+                <strong style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Ações Cadastradas (${axisActions.length}):</strong>
                 ${actionsListHTML}
             </div>
         `;
@@ -1696,6 +1855,11 @@ window.addPlsAction = function(eixo) {
     const selectEl = document.getElementById(`pls-action-select-${idSuffix}`);
     const customInput = document.getElementById(`pls-action-custom-input-${idSuffix}`);
     const descInput = document.getElementById(`pls-action-desc-input-${idSuffix}`);
+    const areaInput = document.getElementById(`pls-action-area-${idSuffix}`);
+    const periodInput = document.getElementById(`pls-action-period-${idSuffix}`);
+    const baseCalcInput = document.getElementById(`pls-action-basecalc-${idSuffix}`);
+    const baselineInput = document.getElementById(`pls-action-baseline-${idSuffix}`);
+    const metaInput = document.getElementById(`pls-action-meta-${idSuffix}`);
     
     if (!selectEl || !descInput) return;
     
@@ -1726,6 +1890,12 @@ window.addPlsAction = function(eixo) {
         eixo: eixo,
         nome: nome,
         descricao: descricao,
+        areaResponsavel: areaInput ? areaInput.value : 'Comissão de Sustentabilidade',
+        periodicidade: periodInput ? periodInput.value : 'Mensal',
+        baseCalculo: baseCalcInput ? baseCalcInput.value : 'Total Absoluto',
+        linhaBase: (baselineInput && baselineInput.value.trim()) ? baselineInput.value.trim() : 'Levantamento 2023–2025',
+        meta: (metaInput && metaInput.value.trim()) ? metaInput.value.trim() : 'Consolidar até 2028',
+        origem: 'Personalizada',
         indicadores: [] // Sem indicadores vinculados ainda
     };
     
@@ -1735,6 +1905,8 @@ window.addPlsAction = function(eixo) {
     selectEl.value = '';
     if (customInput) customInput.value = '';
     descInput.value = '';
+    if (baselineInput) baselineInput.value = '';
+    if (metaInput) metaInput.value = '';
     
     const customContainer = document.getElementById(`pls-action-custom-container-${idSuffix}`);
     if (customContainer) customContainer.style.display = 'none';
@@ -2047,8 +2219,14 @@ function exportPlsExcel() {
 
         exportData.push({
             'Eixo Estratégico': action.eixo,
-            'Ação Corporativa': action.nome,
-            'Descrição Operacional (Forma de Trabalho)': action.descricao,
+            'Ação Consolidada (Taxonomia)': action.nome,
+            'Forma de Trabalho Operacional (Ação Bruta)': action.descricao,
+            'Área Responsável': action.areaResponsavel || 'Comissão de Sustentabilidade',
+            'Periodicidade de Coleta': action.periodicidade || 'Mensal',
+            'Base de Cálculo': action.baseCalculo || 'Total Absoluto',
+            'Linha de Base (2023–2025)': action.linhaBase || 'A levantar',
+            'Meta (2026–2028)': action.meta || 'A definir',
+            'Origem / Tipo': action.origem || 'Personalizada',
             'Indicadores de Eficácia Vinculados': indNames.length > 0 ? indNames.join(' | ') : 'Nenhum indicador vinculado.'
         });
     });
@@ -2057,16 +2235,22 @@ function exportPlsExcel() {
     
     // Ajustar largura de colunas
     const wscols = [
-        {wch: 25},
-        {wch: 35},
+        {wch: 20},
+        {wch: 45},
         {wch: 55},
+        {wch: 28},
+        {wch: 18},
+        {wch: 28},
+        {wch: 28},
+        {wch: 28},
+        {wch: 22},
         {wch: 60}
     ];
     ws['!cols'] = wscols;
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Planejamento PLS');
-    XLSX.writeFile(wb, 'Meu_Planejamento_PLS.xlsx');
+    XLSX.writeFile(wb, 'Planejamento_PLS_ESMPU_Modelo.xlsx');
 }
 
 // Exportar PLS para PDF
@@ -2076,33 +2260,34 @@ function exportPlsPDF() {
     }
 
     const printWindow = window.open('', '_blank');
-    let html = `<html><head><title>Meu Plano de Logística Sustentável - PLS</title><style>
-        @page { size: portrait; margin: 20mm; }
+    let html = `<html><head><title>Plano de Logística Sustentável - PLS (ESMPU / MPU)</title><style>
+        @page { size: portrait; margin: 18mm; }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 0; color: #2c3e50; line-height: 1.5; }
-        .header { border-bottom: 2px solid #2c3e50; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .header h1 { color: #2c3e50; margin: 0; font-size: 22px; font-weight: 700; }
+        .header { border-bottom: 2px solid #2c3e50; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header h1 { color: #2c3e50; margin: 0; font-size: 20px; font-weight: 700; }
         .header p { margin: 0; font-size: 11px; color: #7f8c8d; font-weight: bold; }
-        .intro { margin-bottom: 30px; font-size: 13px; color: #555; }
+        .intro { margin-bottom: 24px; font-size: 12px; color: #444; background: #f8fafc; padding: 12px 16px; border-left: 4px solid #2c3e50; border-radius: 4px; }
         
-        .eixo-section { margin-bottom: 35px; page-break-inside: avoid; }
-        .eixo-title { font-size: 16px; font-weight: bold; color: white; padding: 8px 16px; border-radius: 6px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .eixo-section { margin-bottom: 30px; page-break-inside: avoid; }
+        .eixo-title { font-size: 15px; font-weight: bold; color: white; padding: 8px 16px; border-radius: 6px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .action-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 16px; background-color: #fcfbfa; }
-        .action-header { font-weight: bold; font-size: 14px; color: #2c3e50; margin-bottom: 6px; }
-        .action-desc { font-size: 12px; color: #555; margin-bottom: 12px; font-style: italic; white-space: pre-wrap; }
+        .action-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; margin-bottom: 14px; background-color: #fcfbfa; page-break-inside: avoid; }
+        .action-header { font-weight: bold; font-size: 13.5px; color: #2c3e50; margin-bottom: 6px; }
+        .action-desc { font-size: 12px; color: #444; margin-bottom: 10px; font-style: italic; white-space: pre-wrap; }
+        .gov-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 10.5px; color: #555; background: #fff; padding: 8px 10px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 10px; }
         
-        .indicators-box { padding: 10px 12px; background-color: #fff; border-left: 3px solid #1abc9c; border-radius: 4px; }
-        .indicators-title { font-weight: bold; color: #1abc9c; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+        .indicators-box { padding: 9px 12px; background-color: #fff; border-left: 3px solid #1abc9c; border-radius: 4px; }
+        .indicators-title { font-weight: bold; color: #1abc9c; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .indicator-item { font-size: 11px; color: #333; margin-bottom: 2px; }
     </style></head><body>`;
     
     html += `<div class="header">`;
-    html += `<div><h1>Plano de Logística Sustentável (PLS) - Assistente</h1></div>`;
-    html += `<div><p>Gerado em: ${new Date().toLocaleDateString('pt-BR', {day: '2-digit', month: 'long', year: 'numeric'})}</p><p>Eixos Ativos: ${GlobalState.plsWorkflow.selectedEixos.length}</p></div>`;
+    html += `<div><h1>Plano de Logística Sustentável (PLS) – Modelo Estruturado</h1><p style="margin-top:4px;">Referência: Diagnóstico Institucional ESMPU 2026–2028 (Resolução CNMP nº 145/2016)</p></div>`;
+    html += `<div><p>Gerado em: ${new Date().toLocaleDateString('pt-BR', {day: '2-digit', month: 'long', year: 'numeric'})}</p><p>Eixos Ativos: ${GlobalState.plsWorkflow.selectedEixos.length} | Ações: ${GlobalState.plsWorkflow.actions.length}</p></div>`;
     html += `</div>`;
     
     html += `<div class="intro">`;
-    html += `<p>Este documento consolida o Planejamento de Logística Sustentável construído de forma hierárquica. Ele vincula as diretrizes temáticas (Eixos) às execuções de trabalho (Ações) e às métricas de sucesso (Indicadores).</p>`;
+    html += `<p style="margin:0;">Este documento consolida o Planejamento de Logística Sustentável construído de forma padronizada. Vincula os <strong>Eixos Temáticos</strong> às <strong>Ações Consolidadas</strong>, detalhando a <strong>Forma de Trabalho Operacional (Ação Bruta)</strong>, a <strong>Área Responsável</strong>, a <strong>Periodicidade de Coleta</strong>, a <strong>Base de Cálculo</strong>, a <strong>Linha de Base (2023–2025)</strong>, as <strong>Metas (2026–2028)</strong> e os <strong>Indicadores de Desempenho</strong>.</p>`;
     html += `</div>`;
 
     GlobalState.plsWorkflow.selectedEixos.forEach(eixo => {
@@ -2113,7 +2298,7 @@ function exportPlsPDF() {
         const colorHex = colorToHex(color);
 
         html += `<div class="eixo-section">`;
-        html += `<div class="eixo-title" style="background-color: ${colorHex};">${eixo}</div>`;
+        html += `<div class="eixo-title" style="background-color: ${colorHex};">${eixo} (${axisActions.length} ações)</div>`;
 
         axisActions.forEach((action, idx) => {
             let indicatorsListHTML = '';
@@ -2123,7 +2308,7 @@ function exportPlsPDF() {
                 action.indicadores.forEach(id => {
                     const found = indicadoresData.find(ind => String(ind.id) === String(id));
                     if (found) {
-                        indicatorsListHTML += `<div class="indicator-item">• ${found.nome} (ID: ${found.id} - ${found.categoria || 'Métrica'})</div>`;
+                        indicatorsListHTML += `<div class="indicator-item">• <strong>${found.nome}</strong> (ID: ${found.id} | Categoria: ${found.categoria || 'Métrica'} | Requisito: ${found.requisitos || '-'})</div>`;
                     } else {
                         indicatorsListHTML += `<div class="indicator-item">• Indicador ID: ${id}</div>`;
                     }
@@ -2132,8 +2317,15 @@ function exportPlsPDF() {
 
             html += `
                 <div class="action-card">
-                    <div class="action-header">${idx + 1}. Ação: ${action.nome}</div>
-                    <div class="action-desc">${action.descricao}</div>
+                    <div class="action-header">${idx + 1}. Ação Consolidada: ${action.nome} ${action.origem ? `(${action.origem})` : ''}</div>
+                    <div class="action-desc"><strong>Forma de Trabalho (Ação Bruta):</strong> ${action.descricao}</div>
+                    <div class="gov-meta">
+                        <span><strong>Área Responsável:</strong> ${action.areaResponsavel || 'Comissão de Sustentabilidade'}</span> |
+                        <span><strong>Periodicidade:</strong> ${action.periodicidade || 'Mensal'}</span> |
+                        <span><strong>Base de Cálculo:</strong> ${action.baseCalculo || 'Total Absoluto'}</span> |
+                        <span><strong>Linha de Base (2023–2025):</strong> ${action.linhaBase || 'A levantar'}</span> |
+                        <span><strong>Meta (2026–2028):</strong> ${action.meta || 'A definir'}</span>
+                    </div>
                     <div class="indicators-box">
                         <div class="indicators-title">Métricas e Indicadores de Aferição</div>
                         ${indicatorsListHTML}
@@ -2160,6 +2352,425 @@ function countBy(dataArray, prop) {
     dataArray.forEach(row => { let val = row[prop] || "Não Informado"; counts[val] = (counts[val] || 0) + 1; });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
 }
+
+// ==========================================
+// DIAGNÓSTICO INSTITUCIONAL ESMPU (RELATÓRIOS 10, 11 e 12)
+// ==========================================
+const DIAG_GAP_DATA = [
+    // Resíduos Sólidos (258 nos demais órgãos | 4 na ESMPU)
+    { eixo: 'Resíduos', acao: 'Ações para redução da geração de resíduos', labelCurta: 'Redução da geração de resíduos', outrosN: 118, outrosPct: 45.74, esmpuN: 2, esmpuPct: 50.0, area: 'Contratos e Serviços Gerais', period: 'Mensal', baseCalc: 'Per Capita (Pop. Fixa + Flutuante)', sugestaoBruta: 'Manter impressão frente e verso padrão e avançar na redução de copos descartáveis e papel A4.', indIds: ['17', '18', '26', '27'] },
+    { eixo: 'Resíduos', acao: 'Campanhas educativas e de conscientização sobre redução, separação e destinação adequada de resíduos', labelCurta: 'Campanhas educativas e conscientização', outrosN: 52, outrosPct: 20.16, esmpuN: 2, esmpuPct: 50.0, area: 'Comunicação Social', period: 'Trimestral', baseCalc: 'Indicador de Processo / Entrega', sugestaoBruta: 'Promover campanhas internas e externas sobre uso de utensílios duráveis e descarte de resíduos especiais.', indIds: ['23'] },
+    { eixo: 'Resíduos', acao: 'Logística reversa', labelCurta: 'Logística reversa', outrosN: 29, outrosPct: 11.24, esmpuN: 0, esmpuPct: 0.0, area: 'Engenharia e Manutenção', period: 'Semestral', baseCalc: 'Gravimétrico Contínuo (kg)', sugestaoBruta: 'Implantar fluxo formal de logística reversa para pilhas, baterias, lâmpadas, toners e eletroeletrônicos com pesagem e certificado de destinação.', indIds: ['38', '41', '43'] },
+    { eixo: 'Resíduos', acao: 'Gestão de contratos e compras sustentáveis com a inclusão de critérios ambientais para redução de resíduos em contratações', labelCurta: 'Compras sustentáveis p/ redução de resíduos', outrosN: 28, outrosPct: 10.85, esmpuN: 0, esmpuPct: 0.0, area: 'Compras e Licitações', period: 'Trimestral', baseCalc: 'Total Absoluto', sugestaoBruta: 'Incluir cláusulas de redução de embalagens, logística reversa obrigatória e priorização de materiais reciclados/biodegradáveis nos editais.', indIds: ['28', '32'] },
+    { eixo: 'Resíduos', acao: 'Implantação ou fortalecimento da coleta seletiva interna', labelCurta: 'Coleta seletiva interna', outrosN: 17, outrosPct: 6.59, esmpuN: 0, esmpuPct: 0.0, area: 'Comissão de Sustentabilidade', period: 'Mensal', baseCalc: 'Gravimétrico Contínuo (kg)', sugestaoBruta: 'Estruturar a Coleta Seletiva Cidadã (Lei 12.305/2010) com coletores padronizados, parceria com cooperativas de catadores e compostagem orgânica.', indIds: ['37', '39', '40', '46', '48'] },
+    { eixo: 'Resíduos', acao: 'Monitoramento do consumo, descarte e demais ações que gerem resíduos ou que reduzam a geração', labelCurta: 'Monitoramento gravimétrico de resíduos', outrosN: 14, outrosPct: 5.43, esmpuN: 0, esmpuPct: 0.0, area: 'Contratos e Serviços Gerais', period: 'Mensal', baseCalc: 'Gravimétrico Contínuo (kg)', sugestaoBruta: 'Instituir rotina de pesagem gravimétrica contínua (em kg) das frações recicláveis, orgânicas (compostagem) e rejeitos enviados a aterro sanitário.', indIds: ['44', '45', '47', '48'] },
+
+    // Água (76 nos demais órgãos | 2 na ESMPU)
+    { eixo: 'Água', acao: 'Adequação/substituição de sistemas/equipamentos visando maior eficiência hidráulica', labelCurta: 'Eficiência hidráulica', outrosN: 31, outrosPct: 40.79, esmpuN: 2, esmpuPct: 100.0, area: 'Engenharia e Manutenção', period: 'Semestral', baseCalc: 'Total Absoluto', sugestaoBruta: 'Instalar redutores de pressão nas torneiras dos andares mais baixos e utilizar irrigador automático nos jardins do térreo.', indIds: ['9', '10'] },
+    { eixo: 'Água', acao: 'Campanhas de conscientização para redução do consumo/Uso racional da água', labelCurta: 'Campanhas de uso racional', outrosN: 21, outrosPct: 27.63, esmpuN: 0, esmpuPct: 0.0, area: 'Comunicação Social', period: 'Semestral', baseCalc: 'Per Capita (Pop. Fixa + Flutuante)', sugestaoBruta: 'Realizar campanhas periódicas de sensibilização e sinalização em sanitários/copas para servidores, alunos e terceirizados sobre uso racional da água.', indIds: ['49'] },
+    { eixo: 'Água', acao: 'Monitoramento sistemático do consumo de água e identificação de desperdícios', labelCurta: 'Monitoramento do consumo', outrosN: 14, outrosPct: 18.42, esmpuN: 0, esmpuPct: 0.0, area: 'Engenharia e Manutenção', period: 'Mensal', baseCalc: 'Per Capita (Pop. Fixa + Flutuante)', sugestaoBruta: 'Acompanhar mensalmente as faturas e leituras de hidrômetros (m³ total, per capita e por m²), com protocolo rápido de detecção de vazamentos.', indIds: ['9', '10', '11', '14', '49'] },
+    { eixo: 'Água', acao: 'Captação e aproveitamento de águas pluviais para fins não potáveis', labelCurta: 'Captação de águas pluviais', outrosN: 5, outrosPct: 6.58, esmpuN: 0, esmpuPct: 0.0, area: 'Engenharia e Manutenção', period: 'Anual', baseCalc: 'Total Absoluto', sugestaoBruta: 'Implantar sistema de captação e armazenamento de águas pluviais para irrigação dos jardins e lavagem de áreas externas.', indIds: ['50'] },
+    { eixo: 'Água', acao: 'Reúso de água para fins não potáveis', labelCurta: 'Reúso para fins não potáveis', outrosN: 3, outrosPct: 3.95, esmpuN: 0, esmpuPct: 0.0, area: 'Engenharia e Manutenção', period: 'Anual', baseCalc: 'Total Absoluto', sugestaoBruta: 'Aproveitar água de condensação de sistemas de climatização ou águas cinzas tratadas para fins não potáveis.', indIds: ['12'] },
+    { eixo: 'Água', acao: 'Gestão de contratos e compras sustentáveis com a inclusão de critérios ambientais para aquisição de equipamentos de maior eficiência hidráulica', labelCurta: 'Compras sustentáveis / eficiência hidráulica', outrosN: 2, outrosPct: 2.63, esmpuN: 0, esmpuPct: 0.0, area: 'Compras e Licitações', period: 'Anual', baseCalc: 'Por Área Construída (m²)', sugestaoBruta: 'Exigir nos termos de referência de obras e manutenção predial metais sanitários economizadores, arejadores e descargas de duplo fluxo.', indIds: ['13'] },
+
+    // Energia Elétrica (52 nos demais órgãos | 4 na ESMPU)
+    { eixo: 'Energia Elétrica', acao: 'Campanhas de uso racional de energia elétrica', labelCurta: 'Uso racional de energia', outrosN: 16, outrosPct: 30.77, esmpuN: 1, esmpuPct: 25.0, area: 'Comunicação Social', period: 'Trimestral', baseCalc: 'Per Capita (Pop. Fixa + Flutuante)', sugestaoBruta: 'Conscientizar o público interno sobre a necessidade de desligar luminárias, ar-condicionado e computadores quando não estiverem em uso.', indIds: ['2'] },
+    { eixo: 'Energia Elétrica', acao: 'Monitoramento sistemático do consumo de energia elétrica e identificação de desperdícios', labelCurta: 'Monitoramento do consumo', outrosN: 14, outrosPct: 26.92, esmpuN: 0, esmpuPct: 0.0, area: 'Engenharia e Manutenção', period: 'Mensal', baseCalc: 'Por Área Construída (m²)', sugestaoBruta: 'Realizar acompanhamento mensal sistemático do consumo ativo/reativo (kWh total, per capita e por m²) e auditoria de faturas para identificar desvios.', indIds: ['1', '2', '3', '4', '7'] },
+    { eixo: 'Energia Elétrica', acao: 'Gestão de contratos e compras sustentáveis com a inclusão de critérios ambientais para aquisição de equipamentos de maior eficiência energética em contratações', labelCurta: 'Compras sustentáveis / eficiência energética', outrosN: 10, outrosPct: 19.23, esmpuN: 1, esmpuPct: 25.0, area: 'Compras e Licitações', period: 'Trimestral', baseCalc: 'Total Absoluto', sugestaoBruta: 'Inserir exigência de eficiência energética mínima (Selo Procel / ENCE A) nos termos de referência de aquisições, sempre que possível.', indIds: ['4', '7'] },
+    { eixo: 'Energia Elétrica', acao: 'Implantação/adequação de sistemas de energia renovável', labelCurta: 'Energia renovável', outrosN: 9, outrosPct: 17.31, esmpuN: 0, esmpuPct: 0.0, area: 'Engenharia e Manutenção', period: 'Mensal', baseCalc: 'Total Absoluto', sugestaoBruta: 'Expandir a geração solar fotovoltaica e monitorar separadamente a geração limpa (kWh) e sua participação percentual na matriz da Escola.', indIds: ['5'] },
+    { eixo: 'Energia Elétrica', acao: 'Adequação/substituição de sistemas/equipamentos visando maior eficiência energética', labelCurta: 'Eficiência energética', outrosN: 3, outrosPct: 5.77, esmpuN: 2, esmpuPct: 50.0, area: 'Engenharia e Manutenção', period: 'Semestral', baseCalc: 'Total Absoluto', sugestaoBruta: 'Instalar sensor de presença e fotovoltaico na garagem; individualizar circuito de iluminação comum para permitir escolha de lâmpadas pontuais.', indIds: ['6', '8'] }
+];
+
+const DIAG_DESAFIOS_REL12 = [
+    { num: '1.1', titulo: 'Construir o diagnóstico e a linha de base', problema: 'Dados dispersos entre áreas e sistemas; dificuldade de medição em prédios compartilhados.', solucao: 'Módulo de Monitoramento & Coleta Padronizada (sustentabilidade.site) + campo de Linha de Base (2023–2025) nas ações.' },
+    { num: '1.2', titulo: 'Definir indicadores e metas adequados', problema: 'Bases de cálculo distintas (total, per capita, m²); público flutuante na Escola; Resíduos medidos apenas por processo.', solucao: 'Novos indicadores gravimétricos em kg (IDs 44 a 48) + seletor de Base de Cálculo e População de Referência.' },
+    { num: '1.3', titulo: 'Padronizar conceitos e nomenclaturas', problema: 'Estruturas e nomenclaturas heterogêneas entre ESMPU, MPF, MPT e demais órgãos.', solucao: 'Taxonomia unificada de 17 Ações Consolidadas integrada ao assistente "Monte seu PLS".' },
+    { num: '1.4', titulo: 'Articular as áreas e engajar as unidades', problema: 'Execução distribuída entre Compras, Contratos, Engenharia, Comunicação, Gestão de Pessoas e TI.', solucao: 'Atribuição explícita de Área Responsável e Periodicidade em cada ação do PLS e registro de coleta.' },
+    { num: '1.5', titulo: 'Transformar o monitoramento em rotina', problema: 'Monitoramento previsto desde o PLS 2016, mas carente de operacionalização mensal/anual comparável.', solucao: 'Painel de BI interativo com série histórica de coleta, cálculo automático de indicadores e exportação PDF/XLSX.' },
+    { num: '1.6', titulo: 'Dispor de ferramentas e capacidades abertas', problema: 'Dependência de licenças proprietárias e necessidade de capacitação das equipes.', solucao: 'Solução web aberta, 100% client-side, transferida à ESMPU com template do PLS Modelo 2026–2028.' }
+];
+
+function initDiagnosticoESMPU() {
+    renderDiagnosticoCharts();
+    renderGapAnalysisTable();
+    renderEsmpuConsolidationTable();
+    renderDesafiosCards();
+}
+
+function renderDiagnosticoCharts() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'escuro' || document.documentElement.getAttribute('data-theme') === 'contraste';
+    const textColor = isDark ? '#ffffff' : '#2c3e50';
+
+    const commonPlugins = {
+        legend: {
+            display: true,
+            position: 'bottom',
+            labels: { color: getCssVar('--text-main'), font: { weight: '600', size: 11 } }
+        },
+        datalabels: {
+            color: textColor,
+            font: { weight: 'bold', size: 10 },
+            formatter: (v) => v + '%',
+            anchor: 'end',
+            align: 'end'
+        }
+    };
+
+    // Gráfico 01 - Eixos
+    createOrUpdateChart('chart-diag-eixos', 'bar', ['Resíduos', 'Água', 'Energia Elétrica'], [
+        { label: 'Demais órgãos (n = 386)', data: [66.84, 19.69, 13.47], backgroundColor: '#1f77b4', borderRadius: 4 },
+        { label: 'ESMPU (n = 10)', data: [40.0, 20.0, 40.0], backgroundColor: '#ff7f0e', borderRadius: 4 }
+    ], 'diagEixos', 'Eixo', {
+        scales: {
+            y: { beginAtZero: true, max: 80, ticks: { color: getCssVar('--text-muted'), callback: v => v + '%' }, grid: { color: getCssVar('--border-glass') } },
+            x: { ticks: { color: getCssVar('--text-main') }, grid: { display: false } }
+        },
+        plugins: commonPlugins
+    });
+    if (charts.diagEixos) { charts.diagEixos.options.plugins.legend.display = true; charts.diagEixos.update(); }
+
+    // Gráfico 02 - Resíduos
+    const resItems = DIAG_GAP_DATA.filter(d => d.eixo === 'Resíduos');
+    createOrUpdateChart('chart-diag-residuos', 'bar', resItems.map(d => d.labelCurta), [
+        { label: 'ESMPU (n = 4)', data: resItems.map(d => d.esmpuPct), backgroundColor: '#ff7f0e', borderRadius: 4 },
+        { label: 'Demais órgãos (n = 258)', data: resItems.map(d => d.outrosPct), backgroundColor: '#1f77b4', borderRadius: 4 }
+    ], 'diagResiduos', 'Eixo', {
+        indexAxis: 'y',
+        scales: {
+            x: { beginAtZero: true, max: 62, ticks: { color: getCssVar('--text-muted'), callback: v => v + '%' }, grid: { color: getCssVar('--border-glass') } },
+            y: { ticks: { color: getCssVar('--text-main'), font: { size: 10 } }, grid: { display: false } }
+        },
+        plugins: commonPlugins
+    });
+    if (charts.diagResiduos) { charts.diagResiduos.options.plugins.legend.display = true; charts.diagResiduos.update(); }
+
+    // Gráfico 03 - Água
+    const aguaItems = DIAG_GAP_DATA.filter(d => d.eixo === 'Água');
+    createOrUpdateChart('chart-diag-agua', 'bar', aguaItems.map(d => d.labelCurta), [
+        { label: 'ESMPU (n = 2)', data: aguaItems.map(d => d.esmpuPct), backgroundColor: '#ff7f0e', borderRadius: 4 },
+        { label: 'Demais órgãos (n = 76)', data: aguaItems.map(d => d.outrosPct), backgroundColor: '#1f77b4', borderRadius: 4 }
+    ], 'diagAgua', 'Eixo', {
+        indexAxis: 'y',
+        scales: {
+            x: { beginAtZero: true, max: 112, ticks: { color: getCssVar('--text-muted'), callback: v => v + '%' }, grid: { color: getCssVar('--border-glass') } },
+            y: { ticks: { color: getCssVar('--text-main'), font: { size: 10 } }, grid: { display: false } }
+        },
+        plugins: commonPlugins
+    });
+    if (charts.diagAgua) { charts.diagAgua.options.plugins.legend.display = true; charts.diagAgua.update(); }
+
+    // Gráfico 04 - Energia Elétrica
+    const engItems = DIAG_GAP_DATA.filter(d => d.eixo === 'Energia Elétrica');
+    createOrUpdateChart('chart-diag-energia', 'bar', engItems.map(d => d.labelCurta), [
+        { label: 'ESMPU (n = 4)', data: engItems.map(d => d.esmpuPct), backgroundColor: '#ff7f0e', borderRadius: 4 },
+        { label: 'Demais órgãos (n = 52)', data: engItems.map(d => d.outrosPct), backgroundColor: '#1f77b4', borderRadius: 4 }
+    ], 'diagEnergia', 'Eixo', {
+        indexAxis: 'y',
+        scales: {
+            x: { beginAtZero: true, max: 62, ticks: { color: getCssVar('--text-muted'), callback: v => v + '%' }, grid: { color: getCssVar('--border-glass') } },
+            y: { ticks: { color: getCssVar('--text-main'), font: { size: 10 } }, grid: { display: false } }
+        },
+        plugins: commonPlugins
+    });
+    if (charts.diagEnergia) { charts.diagEnergia.options.plugins.legend.display = true; charts.diagEnergia.update(); }
+}
+
+window.filterGapTable = function(mode) {
+    gapFilterMode = mode;
+    renderGapAnalysisTable();
+};
+
+function renderGapAnalysisTable() {
+    const tbody = document.getElementById('diag-gap-tbody');
+    if (!tbody) return;
+
+    let items = DIAG_GAP_DATA;
+    if (gapFilterMode === 'covered') items = DIAG_GAP_DATA.filter(d => d.esmpuN > 0);
+    if (gapFilterMode === 'gap') items = DIAG_GAP_DATA.filter(d => d.esmpuN === 0);
+
+    tbody.innerHTML = items.map((item, idx) => {
+        const cor = colorToHex(GlobalState.customColors[item.eixo] || getCssVar('--accent'));
+        const isCovered = item.esmpuN > 0;
+        const statusBadge = isCovered
+            ? `<span style="background: rgba(26, 188, 156, 0.15); color: #16a085; padding: 4px 10px; border-radius: 12px; font-size: 0.76rem; font-weight: 700;">✓ Contemplada (${item.esmpuN})</span>`
+            : `<span style="background: rgba(231, 76, 60, 0.15); color: #e74c3c; padding: 4px 10px; border-radius: 12px; font-size: 0.76rem; font-weight: 700;">⚠ Lacuna Temática (0)</span>`;
+
+        const alreadyInPls = GlobalState.plsWorkflow.actions.some(a => a.eixo === item.eixo && a.nome === item.acao);
+        const actionBtn = alreadyInPls
+            ? `<button class="indicador-col-add-btn added" disabled><i data-lucide="check" style="width: 14px;"></i> No PLS</button>`
+            : `<button class="indicador-col-add-btn" onclick="addGapRecommendationToPls(${DIAG_GAP_DATA.indexOf(item)})"><i data-lucide="plus" style="width: 14px;"></i> ${isCovered ? 'Adicionar' : 'Suprir Lacuna'}</button>`;
+
+        return `
+            <tr>
+                <td><span class="eixo-badge" style="background-color: ${cor};">${item.eixo}</span></td>
+                <td style="font-weight: 600; color: var(--text-main); font-size: 0.88rem;">${item.acao}</td>
+                <td style="text-align: center; font-size: 0.85rem;"><strong>${item.outrosN}</strong> (${item.outrosPct}%)</td>
+                <td style="text-align: center; font-size: 0.85rem;"><strong>${item.esmpuN}</strong> (${item.esmpuPct}%)</td>
+                <td style="text-align: center;">${statusBadge}</td>
+                <td style="text-align: center;">${actionBtn}</td>
+            </tr>
+        `;
+    }).join('');
+    lucide.createIcons();
+}
+
+window.addGapRecommendationToPls = function(gapIdx) {
+    const item = DIAG_GAP_DATA[gapIdx];
+    if (!item) return;
+
+    if (!GlobalState.plsWorkflow.selectedEixos.includes(item.eixo)) {
+        GlobalState.plsWorkflow.selectedEixos.push(item.eixo);
+    }
+
+    const newAction = {
+        id: 'action_gap_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        eixo: item.eixo,
+        nome: item.acao,
+        descricao: item.sugestaoBruta,
+        areaResponsavel: item.area,
+        periodicidade: item.period,
+        baseCalculo: item.baseCalc,
+        linhaBase: 'Diagnóstico 2023–2025 (Unidade Piloto ESMPU)',
+        meta: item.esmpuN > 0 ? 'Manter e expandir cobertura até 2028' : 'Implantar até 2027 (Recomendação da Pesquisa)',
+        origem: item.esmpuN > 0 ? 'PLS ESMPU 2026–2028' : 'Recomendação Pesquisa (Lacuna)',
+        indicadores: [...item.indIds]
+    };
+
+    GlobalState.plsWorkflow.actions.push(newAction);
+    renderGapAnalysisTable();
+    renderPlsSidebarSummary();
+    alert(`Ação "${item.labelCurta}" adicionada ao Monte seu PLS com ${item.indIds.length} indicador(es) vinculado(s)!`);
+};
+
+function renderEsmpuConsolidationTable() {
+    const tbody = document.getElementById('diag-esmpu-actions-tbody');
+    if (!tbody) return;
+
+    const esmpuRows = rawData.filter(d => String(d['Unidade']).toUpperCase() === 'ESMPU');
+    tbody.innerHTML = esmpuRows.map(r => {
+        const cor = colorToHex(GlobalState.customColors[r['Eixo']] || getCssVar('--accent'));
+        return `
+            <tr>
+                <td><span class="eixo-badge" style="background-color: ${cor};">${r['Eixo']}</span></td>
+                <td style="font-size: 0.84rem; color: var(--text-main);">${r['Iniciativa BRUTA']}</td>
+                <td style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">${r['Iniciativa consolidada']}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderDesafiosCards() {
+    const container = document.getElementById('diag-desafios-cards');
+    if (!container) return;
+
+    container.innerHTML = DIAG_DESAFIOS_REL12.map(d => `
+        <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-glass); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px;">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); margin-bottom: 4px;">
+                Desafio ${d.num}: ${d.titulo}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">
+                <strong>Como se manifesta:</strong> ${d.problema}
+            </div>
+            <div style="font-size: 0.8rem; color: #16a085; font-weight: 600;">
+                <strong>✓ Contribuição da Ferramenta:</strong> ${d.solucao}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Carrega no Monte seu PLS o Plano da ESMPU (apenas as 10 ações atuais ou completo com as recomendações para cobrir as 11 lacunas)
+window.loadPlsModelESMPU = function(includeRecommendations) {
+    const eixos = ['Energia Elétrica', 'Água', 'Resíduos'];
+    const actions = [];
+
+    // 10 Ações originais do PLS 2026-2028 da ESMPU (Tabela da página 3 do Relatório 11)
+    const baseEsmpu = [
+        { eixo: 'Água', nome: 'Adequação/substituição de sistemas/equipamentos visando maior eficiência hidráulica', descricao: '1) Instalar redutor de pressão nas torneiras dos andares mais baixos.\n2) Utilizar irrigador automático nos jardins do térreo.', area: 'Engenharia e Manutenção', period: 'Semestral', baseCalc: 'Total Absoluto', linhaBase: 'Sistemas hidráulicos 2023–2025', meta: '100% dos andares baixos e jardins atendidos', indIds: ['9', '10'] },
+        { eixo: 'Resíduos', nome: 'Campanhas educativas e de conscientização sobre redução, separação e destinação adequada de resíduos', descricao: '1) Incentivar o uso de utensílios duráveis (copos, canecas, xícaras) para o público interno obrigatoriamente e para o público externo.\n2) Promover campanhas educativas internas (cartazes, e-mail, eventos) e divulgar orientações sobre resíduos especiais (pilhas, eletrônicos etc.).', area: 'Comunicação Social', period: 'Trimestral', baseCalc: 'Per Capita (Pop. Fixa + Flutuante)', linhaBase: 'Consumo de descartáveis 2023–2025', meta: 'Eliminação de copos descartáveis no público interno e 2 campanhas/ano', indIds: ['17', '18', '23'] },
+        { eixo: 'Resíduos', nome: 'Ações para redução da geração de resíduos', descricao: '1) Configurar todas as impressoras para impressão frente e verso.\n2) Instruir processo para viabilizar a contratação do Plano de Gerenciamento de Resíduos Sólidos (PGRS).', area: 'Contratos e Serviços Gerais', period: 'Mensal', baseCalc: 'Per Capita (Pop. Fixa + Flutuante)', linhaBase: 'Consumo de resmas e impressões 2023–2025', meta: '100% das impressoras configuradas e PGRS contratado', indIds: ['26', '27', '36'] },
+        { eixo: 'Energia Elétrica', nome: 'Gestão de contratos e compras sustentáveis com a inclusão de critérios ambientais para aquisição de equipamentos de maior eficiência energética em contratações', descricao: 'Inserir exigência de eficiência energética mínima (Selo Procel / ENCE A) nos termos de referência, sempre que possível.', area: 'Compras e Licitações', period: 'Trimestral', baseCalc: 'Total Absoluto', linhaBase: 'Editais 2023–2025', meta: '100% dos TRs aplicáveis com cláusula de eficiência energética', indIds: ['4', '7'] },
+        { eixo: 'Energia Elétrica', nome: 'Adequação/substituição de sistemas/equipamentos visando maior eficiência energética', descricao: '1) Instalar sensor de presença e sistema fotovoltaico na garagem.\n2) Individualizar circuito de iluminação comum para permitir escolha de lâmpadas pontuais.', area: 'Engenharia e Manutenção', period: 'Semestral', baseCalc: 'Por Área Construída (m²)', linhaBase: 'Infraestrutura elétrica predial 2023–2025', meta: '100% da garagem e circuitos comuns adequados', indIds: ['6', '8'] },
+        { eixo: 'Energia Elétrica', nome: 'Campanhas de uso racional de energia elétrica', descricao: 'Conscientizar o público interno sobre a necessidade de desligar luminárias, ar-condicionado e computador, sempre que possível.', area: 'Comunicação Social', period: 'Trimestral', baseCalc: 'Per Capita (Pop. Fixa + Flutuante)', linhaBase: 'Consumo kWh per capita 2023–2025', meta: 'Redução de 5% no consumo per capita até 2028', indIds: ['2'] }
+    ];
+
+    baseEsmpu.forEach((item, idx) => {
+        actions.push({
+            id: 'esmpu_base_' + idx + '_' + Date.now(),
+            eixo: item.eixo,
+            nome: item.nome,
+            descricao: item.descricao,
+            areaResponsavel: item.area,
+            periodicidade: item.period,
+            baseCalculo: item.baseCalc,
+            linhaBase: item.linhaBase,
+            meta: item.meta,
+            origem: 'PLS ESMPU 2026–2028',
+            indicadores: [...item.indIds]
+        });
+    });
+
+    if (includeRecommendations) {
+        DIAG_GAP_DATA.filter(g => g.esmpuN === 0).forEach((gap, idx) => {
+            actions.push({
+                id: 'esmpu_rec_' + idx + '_' + Date.now(),
+                eixo: gap.eixo,
+                nome: gap.acao,
+                descricao: gap.sugestaoBruta,
+                areaResponsavel: gap.area,
+                periodicidade: gap.period,
+                baseCalculo: gap.baseCalc,
+                linhaBase: 'Diagnóstico 2023–2025 (Marco Zero)',
+                meta: 'Implantar e monitorar continuamente no ciclo 2026–2028',
+                origem: 'Recomendação Pesquisa (Lacuna)',
+                indicadores: [...gap.indIds]
+            });
+        });
+    }
+
+    GlobalState.plsWorkflow = {
+        currentStep: 2,
+        selectedEixos: eixos,
+        actions: actions
+    };
+
+    navBtns.forEach(b => { if (b.getAttribute('data-target') === 'screen-monte-pls') b.click(); });
+    setPlsStep(2);
+    renderGapAnalysisTable();
+    renderIndicadores();
+};
+
+// ==========================================
+// MONITORAMENTO & COLETA PADRONIZADA (GRAVIMETRIA E SÉRIE HISTÓRICA)
+// ==========================================
+function initMonitoringModule() {
+    loadSampleMonitoringData(true);
+}
+
+window.loadSampleMonitoringData = function(silent) {
+    monitoringRecords = [
+        { id: 'm1', periodo: '2023 (Média/Mês)', unidade: 'ESMPU (Linha de Base)', pop: 420, area: 12500, energiaKwh: 41200, energiaSolar: 0, aguaM3: 345, aguaReuso: 0, resReciclavel: 180, resCompostagem: 0, resAterro: 540, areaResp: 'Comissão de Sustentabilidade' },
+        { id: 'm2', periodo: '2024 (Média/Mês)', unidade: 'ESMPU (Linha de Base)', pop: 435, area: 12500, energiaKwh: 40100, energiaSolar: 0, aguaM3: 332, aguaReuso: 0, resReciclavel: 210, resCompostagem: 0, resAterro: 510, areaResp: 'Comissão de Sustentabilidade' },
+        { id: 'm3', periodo: '2025 (Média/Mês)', unidade: 'ESMPU (Linha de Base)', pop: 440, area: 12500, energiaKwh: 39500, energiaSolar: 1800, aguaM3: 320, aguaReuso: 0, resReciclavel: 260, resCompostagem: 35, resAterro: 455, areaResp: 'Engenharia e Manutenção' },
+        { id: 'm4', periodo: '2026-08', unidade: 'ESMPU (Unidade Piloto)', pop: 450, area: 12500, energiaKwh: 38900, energiaSolar: 3900, aguaM3: 315, aguaReuso: 15, resReciclavel: 350, resCompostagem: 80, resAterro: 360, areaResp: 'Contratos e Serviços Gerais' },
+        { id: 'm5', periodo: '2026-09', unidade: 'ESMPU (Unidade Piloto)', pop: 455, area: 12500, energiaKwh: 38600, energiaSolar: 4100, aguaM3: 312, aguaReuso: 20, resReciclavel: 390, resCompostagem: 95, resAterro: 315, areaResp: 'Contratos e Serviços Gerais' },
+        { id: 'm6', periodo: '2026-10', unidade: 'ESMPU (Unidade Piloto)', pop: 450, area: 12500, energiaKwh: 38200, energiaSolar: 4300, aguaM3: 308, aguaReuso: 25, resReciclavel: 430, resCompostagem: 115, resAterro: 285, areaResp: 'Comissão de Sustentabilidade' }
+    ];
+    renderMonitoringModule();
+    if (!silent) alert("Série histórica demonstrativa da ESMPU (Linha de Base 2023–2025 + Monitoramento 2026) carregada!");
+};
+
+window.addMonitoringRecord = function() {
+    const unidade = document.getElementById('col-unidade').value.trim() || 'ESMPU';
+    const periodo = document.getElementById('col-periodo').value.trim() || '2026-11';
+    const pop = parseFloat(document.getElementById('col-populacao').value) || 1;
+    const area = parseFloat(document.getElementById('col-area').value) || 1;
+    const energiaKwh = parseFloat(document.getElementById('col-energia-kwh').value) || 0;
+    const energiaSolar = parseFloat(document.getElementById('col-energia-solar').value) || 0;
+    const aguaM3 = parseFloat(document.getElementById('col-agua-m3').value) || 0;
+    const aguaReuso = parseFloat(document.getElementById('col-agua-reuso').value) || 0;
+    const resReciclavel = parseFloat(document.getElementById('col-res-reciclavel').value) || 0;
+    const resCompostagem = parseFloat(document.getElementById('col-res-compostagem').value) || 0;
+    const resAterro = parseFloat(document.getElementById('col-res-aterro').value) || 0;
+    const areaResp = document.getElementById('col-area-resp').value;
+
+    monitoringRecords.push({
+        id: 'm_' + Date.now(),
+        periodo, unidade, pop, area, energiaKwh, energiaSolar, aguaM3, aguaReuso, resReciclavel, resCompostagem, resAterro, areaResp
+    });
+    renderMonitoringModule();
+};
+
+window.removeMonitoringRecord = function(id) {
+    monitoringRecords = monitoringRecords.filter(r => r.id !== id);
+    renderMonitoringModule();
+};
+
+function renderMonitoringModule() {
+    const tbody = document.getElementById('coleta-records-tbody');
+    const countEl = document.getElementById('coleta-records-count');
+    if (!tbody) return;
+
+    if (countEl) countEl.textContent = `${monitoringRecords.length} registro(s) na série`;
+
+    tbody.innerHTML = monitoringRecords.map(r => {
+        const resTotal = r.resReciclavel + r.resCompostagem + r.resAterro;
+        const desvioPct = resTotal > 0 ? (((r.resReciclavel + r.resCompostagem) / resTotal) * 100).toFixed(1) : '0.0';
+        const engPerCapita = (r.energiaKwh / (r.pop || 1)).toFixed(1);
+        const aguaPerCapita = (r.aguaM3 / (r.pop || 1)).toFixed(2);
+
+        return `
+            <tr>
+                <td style="font-weight: 700; color: var(--text-main);">${r.periodo}</td>
+                <td>${r.unidade}</td>
+                <td>${r.energiaKwh.toLocaleString('pt-BR')} kWh <small style="color:var(--text-muted);">(${engPerCapita} kWh/hab)</small></td>
+                <td>${r.aguaM3.toLocaleString('pt-BR')} m³ <small style="color:var(--text-muted);">(${aguaPerCapita} m³/hab)</small></td>
+                <td style="font-weight: 700;">${resTotal.toLocaleString('pt-BR')} kg</td>
+                <td style="color: #16a085; font-weight: 600;">${r.resReciclavel} kg / ${r.resCompostagem} kg</td>
+                <td style="color: #e74c3c; font-weight: 600;">${r.resAterro} kg</td>
+                <td><span style="background: rgba(26,188,156,0.15); color: #16a085; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-size: 0.78rem;">${desvioPct}%</span></td>
+                <td style="font-size: 0.8rem;">${r.areaResp}</td>
+                <td style="text-align: center;">
+                    <button class="pls-btn-remove" style="margin: 0 auto;" onclick="removeMonitoringRecord('${r.id}')" title="Remover registro">
+                        <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    const labels = monitoringRecords.map(r => r.periodo);
+    const recData = monitoringRecords.map(r => r.resReciclavel);
+    const compData = monitoringRecords.map(r => r.resCompostagem);
+    const aterroData = monitoringRecords.map(r => r.resAterro);
+
+    createOrUpdateChart('chart-coleta-gravimetria', 'bar', labels, [
+        { label: 'Recicláveis → Cooperativas (kg)', data: recData, backgroundColor: '#1abc9c', stack: 'res' },
+        { label: 'Orgânicos → Compostagem (kg)', data: compData, backgroundColor: '#3498db', stack: 'res' },
+        { label: 'Rejeitos → Aterro Sanitário (kg)', data: aterroData, backgroundColor: '#e74c3c', stack: 'res' }
+    ], 'coletaGravimetria', 'Eixo', {
+        scales: {
+            x: { stacked: true, ticks: { color: getCssVar('--text-main') }, grid: { display: false } },
+            y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Quilogramas (kg)' }, ticks: { color: getCssVar('--text-muted') }, grid: { color: getCssVar('--border-glass') } }
+        },
+        plugins: {
+            legend: { display: true, position: 'bottom', labels: { color: getCssVar('--text-main') } },
+            datalabels: { color: '#fff', font: { weight: 'bold', size: 10 } }
+        }
+    });
+    if (charts.coletaGravimetria) { charts.coletaGravimetria.options.plugins.legend.display = true; charts.coletaGravimetria.update(); }
+    lucide.createIcons();
+}
+
+window.exportMonitoringExcel = function() {
+    if (monitoringRecords.length === 0) return alert("Não há registros de monitoramento para exportar.");
+    const rows = monitoringRecords.map(r => {
+        const resTotal = r.resReciclavel + r.resCompostagem + r.resAterro;
+        return {
+            'Período': r.periodo,
+            'Unidade': r.unidade,
+            'População de Referência': r.pop,
+            'Área Construída (m²)': r.area,
+            'Energia Consumida (kWh)': r.energiaKwh,
+            'Energia Per Capita (kWh/pessoa)': Number((r.energiaKwh / (r.pop || 1)).toFixed(2)),
+            'Energia por m² (kWh/m²)': Number((r.energiaKwh / (r.area || 1)).toFixed(2)),
+            'Geração Fotovoltaica (kWh)': r.energiaSolar,
+            'Água Consumida (m³)': r.aguaM3,
+            'Água Per Capita (m³/pessoa)': Number((r.aguaM3 / (r.pop || 1)).toFixed(3)),
+            'Água Reúso/Pluvial (m³)': r.aguaReuso,
+            'Resíduos Recicláveis Cooperativas (kg)': r.resReciclavel,
+            'Resíduos Orgânicos Compostagem (kg)': r.resCompostagem,
+            'Rejeitos Aterro Sanitário (kg)': r.resAterro,
+            'Resíduos Total Gerado (kg)': resTotal,
+            'Resíduos Per Capita (kg/pessoa)': Number((resTotal / (r.pop || 1)).toFixed(2)),
+            'Taxa de Desvio de Aterro (%)': resTotal > 0 ? Number((((r.resReciclavel + r.resCompostagem) / resTotal) * 100).toFixed(2)) : 0,
+            'Área Responsável': r.areaResp
+        };
+    });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Monitoramento PLS');
+    XLSX.writeFile(wb, 'Serie_Monitoramento_Gravimetrico_PLS_ESMPU.xlsx');
+};
 
 // Start
 loadData();

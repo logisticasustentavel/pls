@@ -1,72 +1,60 @@
-# 📘 Manual do Usuário - Painel BI Iniciativas (v03)
+# 📘 Manual do Usuário - Painel BI & Assistente PLS ESMPU (v04)
 
-Bem-vindo ao guia oficial do seu novo Painel de Business Intelligence. Este documento detalha como explorar ao máximo as funcionalidades de análise estratégica de 2026.
+Bem-vindo ao guia oficial do Painel de Business Intelligence e Assistente de Elaboração de Planos de Logística Sustentável (PLS), desenvolvido no âmbito do Programa de Bolsas de Pesquisa Científica da **Escola Superior do Ministério Público da União (ESMPU)** (*"Ministério Público da União Verde: liderando a transformação da gestão sustentável"*).
 
 ---
 
 ## 🚀 1. Visão Geral
-O painel foi desenhado para consolidar iniciativas de forma visual e intuitiva, permitindo que você saia de uma visão macro (Brasil) para o detalhe micro (texto da iniciativa) em poucos cliques.
-
-**Tecnologia**: Baseado em arquivos XLSX, processado localmente para máxima performance e privacidade.
+O sistema integra o diagnóstico empírico de sustentabilidade (nos eixos **Água**, **Energia Elétrica** e **Resíduos Sólidos**), a comparação interinstitucional da **ESMPU (Unidade Piloto)** com demais órgãos públicos, o catálogo normalizado de **50 indicadores** e o módulo interativo **"Monte seu PLS"**.
 
 ---
 
-## 🎨 2. Personalização Visual (A Estrela do Painel)
-No canto direito, você encontrará o **Painel de Legenda Permanente**.
+## 🗺️ 2. Navegação pelas 9 Abas do Painel
 
-*   **O que faz?**: Lista os controles de Tema, Foco (Zoom) e Eixos Estratégicos.
-*   **Troca de Temas**: Altere rapidamente entre as paletas (🏝️ Praia, ☀️ Claro, 🌙 Escuro, 🔳 Alto Contraste). Essa barra ficava no topo antigamente, mas agora vive aqui para **liberar espaço máximo** para os gráficos no centro da tela!
-*   **Controle de Zoom**: Ajuste o tamanho e a proporção dos dados e da fonte de leitura.
-*   **Cores dos Eixos**: Clique no quadrado de cor ao lado de cada eixo para abrir o seletor. Ao escolher uma nova cor, **todos** os gráficos de todas as páginas se atualizam instantaneamente.
-*   **Persistência**: Se você customizar uma cor, ela fica retida mesmo se você trocar o tema master do painel depois.
-*   **Botão Reset**: No rodapé da legenda, o botão "Resetar Cores" volta para a paleta padrão nativa.
+### 🏠 1. Início (Capa)
+* **Atalhos de Unidade / Escopo**: Filtre todo o painel com 1 clique entre **`ESMPU (Unidade Piloto)`**, **`MPU (Todos)`** ou **`Outros Órgãos`**.
+* **KPIs Dinâmicos**: Total de Iniciativas, Eixos de Atuação, Estados Avaliados e Unidades/Órgãos.
+* **Resumo Visual**: Gráfico de Rosca por Eixo e Barras Empilhadas dos Top 5 Estados.
 
----
+### 📊 2. Eixos
+* **Volume Detalhado**: Comparação horizontal entre Energia Elétrica, Água e Resíduos Sólidos.
+* **Nuvem de Termos**: Palavras-chave mais recorrentes nas ações brutas e consolidadas.
 
-## 🗺️ 3. Navegação entre Abas
+### 📍 3. Geográfico
+* **Mapa Interativo do Brasil**: Clique em qualquer UF para filtrar o painel e abrir o **Painel de Detalhes Selecionados** agrupado por eixo.
+* **Ranking de Unidades**: Top 10 unidades com maior número de iniciativas.
 
-### 🏠 Aba: Início (Capa)
-É o seu "Cockpit" de controle.
-*   **KPIs**: 4 cartões com os números globais (Total de Iniciativas, Eixos, Estados e Órgãos).
-*   **Atalhos de Unidade**: Botões **MPU** e **Outros Órgãos**. Ao clicar, todo o dashboard (inclusive as outras abas) filtra apenas essas categorias.
-*   **Resumo Visual**: Gráfico de Rosca (Top 5 Eixos) e Barras por Estados.
+### 💡 4. Insights Estratégicos
+* **Cards de Destaque**: Mostra a Unidade Líder no filtro atual, UF de maior concentração, atalho direto para a **Unidade Piloto (ESMPU)** e Eixo Predominante.
+* **Análise de Pareto por Unidade/Instituição**: Ranking completo de todas as instituições (com a barra da **ESMPU** destacada em coral/vermelho).
+* **Matriz de Calor (Eixo vs. Unidade)**: Cruzamento de intensidade de iniciativas por instituição e eixo temático.
 
-### 📊 Aba: Eixos
-Foco no conteúdo das iniciativas.
-*   **Volume Detalhado**: Gráfico horizontal comparando todos os eixos.
-*   **Nuvem de Termos**: Mostra o que mais se fala nas iniciativas. Ao filtrar um Eixo, a nuvem assume a cor dele automaticamente.
+### 🔬 5. Diagnóstico ESMPU (Novo!)
+Consolida visualmente os achados dos **Relatórios de Acompanhamento 10, 11 e 12**:
+* **Gráficos Comparativos (01 a 04)**: Compara a distribuição percentual da **ESMPU ($n = 10$)** frente aos **Demais Órgãos ($n = 386$)** na composição geral por eixo e dentro de *Resíduos Sólidos*, *Água* e *Energia Elétrica*.
+* **Matriz de Cobertura e Lacunas Temáticas (*Gap Analysis*)**: Lista todas as 17 categorias consolidadas da taxonomia da pesquisa, indicando quais já são contempladas pelo PLS 2026–2028 da ESMPU e quais constituem as **11 lacunas temáticas** (monitoramento sistemático, coleta seletiva interna, logística reversa, águas pluviais, reúso etc.).
+  * **Botão `+ Suprir Lacuna`**: Envia qualquer lacuna diretamente para o assistente *Monte seu PLS* já preenchida com recomendação operacional, área responsável, periodicidade e indicadores vinculados!
+* **Tabela de Consolidação ESMPU & Os 6 Desafios de Governança**: Exibe as 10 ações brutas do item *"7. Plano de Ações e Metas"* do PLS da ESMPU convertidas em ações consolidadas, além dos 6 desafios de elaboração de PLS e as soluções entregues pela pesquisa.
 
-### 📍 Aba: Geográfico
-Exploração territorial.
-*   **Mapa Interativo**: Clique em qualquer estado.
-*   **Painel de Detalhes**: Ao clicar no mapa, o painel lateral de "Detalhes Selecionados" abre, mostrando as iniciativas daquele estado agrupadas por Eixo (com as suas cores customizadas!).
-*   **Interligação**: O painel geográfico agora atua como uma lente de aumento na aba e mantém fatias separadas.
+### 🎯 6. Indicadores
+* **Catálogo de 50 Indicadores Classificados**: Inclui os indicadores do PLS MPDFT e os novos **indicadores científicos gravimétricos da Equipe de Pesquisa** (geração total em kg, geração per capita em kg/pessoa, compostagem em kg, aterro sanitário em kg, taxa de desvio de aterro em %, consumo hídrico per capita e águas pluviais).
+* **Filtros Combinados**: Filtre por **Eixo**, **Fonte** (`PLS MPDFT 2022` ou `Equipe`), **Categoria** (`gravimétrico / monitoramento`, `eficiência`, `gestão de contrato`, `redução na fonte`, `logística reversa` etc.) e busca textual.
 
-### 💡 Aba: Insights
-Onde a estratégia acontece.
-*   **Pareto por Órgão**: Gráfico de barras que mostra os maiores detentores de iniciativas, ordenados do maior para o menor.
-*   **Matriz de Calor (Heatmap)**: Um cruzamento visual entre Eixo e Órgão. Quanto mais "brilhante" a cor (sua cor escolhida na legenda), maior o volume de iniciativas naquele cruzamento.
+### 🛍️ 7. Monte seu PLS (Assistente & Modelo ESMPU)
+Construa ou atualize um Plano de Logística Sustentável completo em 3 etapas:
+1. **Botões de Carregamento Rápido (Templates ESMPU)**:
+   * **`PLS ESMPU (Base)`**: Carrega as ações originais do PLS 2026–2028 da ESMPU.
+   * **`PLS Modelo ESMPU (Completo)`**: Carrega o plano da ESMPU acrescido das ações recomendadas pela pesquisa para cobrir todas as 11 lacunas temáticas e seus respectivos indicadores gravimétricos e de monitoramento.
+2. **Metadados de Governança (Etapa 2)**: Ao cadastrar cada ação, defina a **Ação Consolidada** (taxonomia padronizada), a **Forma de Trabalho Operacional (Ação Bruta)**, a **Área Responsável** (*Comissão de Sustentabilidade, Engenharia, Compras, Contratos, Comunicação, Gestão de Pessoas, TI*), a **Periodicidade**, a **Base de Cálculo** (*Total, Per Capita, por $m^2$, Gravimétrico em kg*), a **Linha de Base (2023–2025)** e a **Meta (2026–2028)**.
+3. **Exportação Executiva**: Exporte o plano estruturado em **PDF** (formatado para impressão/anexo SEI) ou **Excel (XLSX)**, ou salve/carregue a sessão em arquivo `.json`.
 
-### 📋 Aba: Relatórios
-Visão tabular para auditar os dados finos que alimentam seu painel.
-*   **Tabela Inteligente:** As colunas podem ser filtradas de forma independente, além da busca semântica global no topo da aba.
-*   **Gerar Relatório Avançado:** Um poderoso motor de relatórios.
-    1.  Ao clicar no botão "Gerar Relatório", o sistema analisa tudo que você andou clicando no painel (Mapa, Gráficos, Busca).
-    2.  O Modal se molda dinamicamente para mostrar **exatamente quais filtros estão ativos**.
-    3.  Você decide com 1 clique se deseja exportar a **Base Completa** ou apenas os **Dados Filtrados**. (Se não houver filtros, o relatório completo é gerado automaticamente).
-    4.  **Exportação inteligente**: Se escolher **Relatório PDF**, ele gera um documento sofisticado para impressão, e que **lista no cabeçalho quais foram os filtros aplicados**, garantindo conformidade nas suas reuniões! O painel também gera planilhas **Excel (XLSX)** brutas com o mesmo nível matemático de filtro.
----
+### 📋 8. Monitoramento & Coleta Padronizada (Novo!)
+Módulo operacional integrado ao portal `http://sustentabilidade.site` para transformar o monitoramento em rotina:
+* Registre medições mensais/anuais informando a **População de Referência (Fixa + Flutuante)** e a **Área Construída ($m^2$)**.
+* **Pesagem Gravimétrica de Resíduos (kg)**: Registre os quilogramas destinados a *Cooperativas (Recicláveis)*, *Compostagem (Orgânicos)* e *Aterro Sanitário (Rejeitos)*. O painel calcula automaticamente o total gerado, os indicadores *per capita* e a **Taxa de Desvio de Aterro (%)**, atualizando o gráfico empilhado da série histórica e permitindo exportação para Excel.
 
-## 🛠️ 4. Funções e Botões Importantes
-
-1.  **Limpar Filtros (Eraser)**: Localizado na sidebar esquerda. Use sempre que quiser "resetar" a visão e ver o todo novamente, limpando filtros de unidade, mapa e eixos simultaneamente.
-2.  **Cross-Filtering**: Quase tudo é clicável interligado nas abas visuais. Clicar em uma fatia do gráfico de pizza filtra o painel inteiro por aquele eixo. A tabela de Relatórios respeitará estritamente essa escolha de escopo.
+### 🗄️ 9. Relatórios (Base de Dados)
+* Tabela auditável com busca global, filtros independentes por coluna e gerador de relatórios filtrados ou completos em **PDF** e **XLSX**.
 
 ---
-
-## 💡 Dica de Mestre
-Para uma apresentação memorável, comece personalizando as cores dos eixos para combinar com a identidade visual da sua reunião. Use a **Matriz de Calor** na aba Insights para mostrar rapidamente onde estão os gargalos e o **Mapa** para mostrar a capilaridade nacional.
-
----
-*Desenvolvido com tecnologia de ponta para acompanhamento estratégico 2026.*
-#Avante! 🏁
+*Grupo de Pesquisa "Ministério Público da União Verde" – ESMPU (2026).*
